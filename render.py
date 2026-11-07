@@ -122,7 +122,7 @@ def render(brief_path,out,engine,model,voice,width,height,crf):
             raise ValueError("No finished videos without an approved image for every scene")
         measure=run(["ffmpeg","-hide_banner","-i",target,"-vn","-af","volumedetect","-f","null","-"]).stderr
         import re
-        found=re.search(r"mean_volume:\\s*(-?[0-9.]+) dB",measure)
+        found=re.search(r"mean_volume:\s*(-?[0-9.]+) dB",measure)
         if not found or float(found.group(1))<-33:
             raise RuntimeError(f"Voice too quiet or inaudible: mean={found.group(1) if found else 'missing'} dB; ffmpeg output={measure[-1300:]}")
         os.replace(target,out)
