@@ -1,0 +1,55 @@
+name: Validate scene-aligned local video engine
+on:
+  push:
+    branches:
+      - feature/local-piper-production-gates-20261107
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install free media dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak fonts-dejavu-core
+          python -m pip install -r requirements.txt
+      - name: Check Python syntax and tests
+        run: |
+          python -m compileall -q render.py tests
+          python -m unittest discover -s tests -v
+          bash -n scripts/setup_piper.sh
+      - name: Create safe synthetic sample images (no game-media redistribution)
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageDraw
+          root = Path("assets")
+          root.mkdir(exist_ok=True)
+          for i, name in enumerate(("lucia", "keys", "vice", "park", "jason")):
+              im = Image.new("RGB", (640, 360), (45+i*25, 70+i*10, 135-i*13))
+              d = ImageDraw.Draw(im)
+              d.rectangle((80,60,560,300),outline="white",width=6)
+              d.text((110,145),f"KLYPTIQ TEST SCENE {i+1}",fill="white")
+              im.save(root/f"{name}.jpg")
+          PY
+      - name: Render scene-aligned narration and MP4
+        run: |
+          python render.py briefs/visual-demo.json --width 360 --height 640 --tts espeak -o output/scene-synced-test.mp4
+      - name: Validate audio and video streams
+        run: |
+          test -s output/scene-synced-test.mp4
+          ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height -of default=noprint_wrappers=1 output/scene-synced-test.mp4
+          ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1 output/scene-synced-test.mp4
+      - name: Upload technical test (never auto-publish)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Klyptiq-synced-voice-preview
+          path: output/scene-synced-test.mp4
+          retention-days: 7
