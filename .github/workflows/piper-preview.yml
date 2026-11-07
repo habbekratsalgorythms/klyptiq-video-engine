@@ -35,15 +35,15 @@ jobs:
         run: |
           . .venv/bin/activate
           python render.py briefs/visual-demo.json --tts piper --model models/en_US-kristin-medium.onnx \
-            --width 360 --height 640 --quality preview -o output/Klyptiq_Piper_voice_test.mp4
+            --quality production -o output/Klyptiq_Piper_review_1080p.mp4
       - name: Verify presence of H264 video and AAC voice audio
         run: |
-          ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 output/Klyptiq_Piper_voice_test.mp4
-          ffmpeg -hide_banner -i output/Klyptiq_Piper_voice_test.mp4 -vn -af volumedetect -f null - 2>&1 | tail -20
-          test -s output/Klyptiq_Piper_voice_test.mp4
+          ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 output/Klyptiq_Piper_review_1080p.mp4
+          ffmpeg -hide_banner -i output/Klyptiq_Piper_review_1080p.mp4 -vn -af volumedetect -f null - 2>&1 | tail -20
+          test -s output/Klyptiq_Piper_review_1080p.mp4
       - name: Upload private-to-workflow review artifact (no social publishing)
         uses: actions/upload-artifact@v4
         with:
-          name: Klyptiq-Piper-neural-voice-preview
-          path: output/Klyptiq_Piper_voice_test.mp4
+          name: Klyptiq-Piper-1080p-review
+          path: output/Klyptiq_Piper_review_1080p.mp4
           retention-days: 7
