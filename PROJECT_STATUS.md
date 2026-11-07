@@ -62,3 +62,13 @@ Updated 2026-11-07. Project is independent from SpotlessPro Agent Lab, the hours
 - This is an editorial technical test, **not proof of subjective voice quality**. The YouTube style reference could not be directly listened to through the available tools.
 - No video was automatically posted to Instagram, TikTok, YouTube. No Descript subscription or paid API called.
 - Owner and Jesse need do nothing immediately. A subjective review of the audio is a release gate before unsupervised automated posting.
+
+## 2026-11-08 — Optional `--pop` visual mode verified and merged
+
+- GitHub main squash commit `16078fd5641c961d2c285b145b794cd68e25d861`; PR #4 merged. Existing non-pop renderer is unchanged by default.
+- New optional `--pop` flag makes more energetic shorts with 2–4 changing caption beats per scene, cyan-bordered black cards, high-contrast yellow/white text, scene numbers and quicker but controlled photo zoom.
+- Real 1080×1920 render with Kokoro voice and five scenes passed GitHub Actions [run #42426828142](https://github.com/habbekratsalgorythms/klyptiq-video-engine/actions/runs/42426828142); tests passed [run #42426828032](https://github.com/habbekratsalgorythms/klyptiq-video-engine/actions/runs/42426828032).
+- Independently inspected MP4: 19.03 seconds, H.264 and AAC, nine sampled frames showing different caption beats and sharp foreground artwork.
+- Review artifact: `Klyptiq-Pop-voices-and-1080p-review` in run #42426828142 (temporary GitHub artifact, expires ~2026-11-21). Preview only, nothing published to Metricool.
+- Limitations: this is more dynamic **still-photo editing**, not yet professional gameplay-video cuts or precise word-level sync. Rights review and subjective quality approval remain required before autopublishing. No Descript credits or paid subscriptions used.
+- Next development priority: optional licensed gameplay/video clip input, transitions/beat-matched audio and a larger variety of editorial image assets before unattended daily production. Preserve separation from SpotlessPro Agent Lab.
