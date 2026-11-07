@@ -48,3 +48,17 @@ Updated 2026-11-07. Project is independent from SpotlessPro Agent Lab, the hours
 - eSpeak previews are technical-only. Piper 1080p improves speech but creative quality still requires visual/audio review.
 - No automatic news research, fact verification, game footage rights acquisition, affiliate monetization or revenue claims.
 - Copyright and media monetization rights require verification before commercial upload.
+
+## 2026-11-07 — Expressive gaming narration added to main
+
+- Latest GitHub main merge: `4d91cd5d4e6211189e90448e4b06c5d63185de04`, PR #3, introducing the offline Kokoro 82M voice.
+- New optional `--tts kokoro` speech engine; expressive per-scene `pace` via briefing, separate from Piper fallback.
+- `scripts/setup_kokoro.sh` downloads FP16 model + voices from upstream GitHub release with SHA-256 verification. Requires about 192 MB storage.
+- `scripts/audition_kokoro.py` makes three independent English male gaming-voice WAV auditions: `am_puck`, `am_fenrir`, and `am_michael`.
+- `briefs/energetic-story-kokoro.json` uses short energetic but fact-conscious narration and aligned media scenes.
+- One-command `install_and_test.sh` prefers Kokoro with cinematic motion and 1080x1920 output; Piper is fallback when installation is not possible.
+- GitHub test workflow: https://github.com/habbekratsalgorythms/klyptiq-video-engine/actions/runs/42424540338 succeeded.
+- Full 1080p Kokoro voice-and-video test: https://github.com/habbekratsalgorythms/klyptiq-video-engine/actions/runs/42424540341 succeeded. Its artifact contains three WAV voice auditions plus a preview MP4.
+- This is an editorial technical test, **not proof of subjective voice quality**. The YouTube style reference could not be directly listened to through the available tools.
+- No video was automatically posted to Instagram, TikTok, YouTube. No Descript subscription or paid API called.
+- Owner and Jesse need do nothing immediately. A subjective review of the audio is a release gate before unsupervised automated posting.
