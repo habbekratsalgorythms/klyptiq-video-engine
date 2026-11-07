@@ -1,0 +1,38 @@
+{
+  "title": "GTA VI Story: One Score Changes Everything",
+  "label": "OFFICIAL STORY / GAMING NEWS",
+  "style": "news",
+  "script": "Here's how GTA Six's story begins! Jason and Lucia are chasing a better life in Leonida. But one easy score goes wrong. And suddenly, they're caught in a criminal conspiracy. Now, their only way out? Relying on each other to survive. That's Rockstar's official setup! So, Jason or Lucia first?",
+  "scenes": [
+    {
+      "caption": "GTA VI STARTS WITH A SCORE GONE WRONG",
+      "voiceover": "Here's how GTA Six's story begins!",
+      "pace": 1.15,
+      "asset": "../assets/lucia.jpg"
+    },
+    {
+      "caption": "JASON AND LUCIA WANT A BETTER LIFE",
+      "voiceover": "Jason and Lucia are chasing a better life in Leonida.",
+      "pace": 1.1,
+      "asset": "../assets/jason.jpg"
+    },
+    {
+      "caption": "ONE MISTAKE CHANGES EVERYTHING",
+      "voiceover": "But one easy score goes wrong. And suddenly, they're caught in a criminal conspiracy.",
+      "pace": 1.13,
+      "asset": "../assets/vice.jpg"
+    },
+    {
+      "caption": "TRUST EACH OTHER TO SURVIVE",
+      "voiceover": "Now, their only way out? Relying on each other to survive.",
+      "pace": 1.08,
+      "asset": "../assets/keys.jpg"
+    },
+    {
+      "caption": "WHO WILL YOU PLAY FIRST?",
+      "voiceover": "That's Rockstar's official setup! So, Jason or Lucia first?",
+      "pace": 1.15,
+      "asset": "../assets/park.jpg"
+    }
+  ]
+}
