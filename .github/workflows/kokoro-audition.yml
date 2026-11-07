@@ -15,7 +15,7 @@ permissions:
 jobs:
   audition:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -36,28 +36,28 @@ jobs:
           python scripts/audition_kokoro.py
       - name: Prepare editorial test frames
         run: bash scripts/prepare_editorial_media.sh
-      - name: Render scene-synced energetic video draft with am_puck
+      - name: Render 1080p scene-synced energetic video with am_puck
         run: |
           . .venv/bin/activate
           python render.py briefs/energetic-story-kokoro.json \
             --tts kokoro --model models/kokoro-v1.0.fp16.onnx \
             --voice am_puck --pace 1.12 --motion \
-            --width 360 --height 640 --quality preview \
-            -o output/Klyptiq_Kokoro_energetic_draft.mp4
+            --width 1080 --height 1920 --quality production \
+            -o output/Klyptiq_Kokoro_1080p_review.mp4
       - name: Validate voice files and video+audio
         run: |
           test -s output/voice-auditions/am_puck.wav
           test -s output/voice-auditions/am_fenrir.wav
           test -s output/voice-auditions/am_michael.wav
-          test -s output/Klyptiq_Kokoro_energetic_draft.mp4
-          ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 output/Klyptiq_Kokoro_energetic_draft.mp4
-          ffmpeg -hide_banner -i output/Klyptiq_Kokoro_energetic_draft.mp4 -vn -af volumedetect -f null - 2>&1 | tail -20
+          test -s output/Klyptiq_Kokoro_1080p_review.mp4
+          ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 output/Klyptiq_Kokoro_1080p_review.mp4
+          ffmpeg -hide_banner -i output/Klyptiq_Kokoro_1080p_review.mp4 -vn -af volumedetect -f null - 2>&1 | tail -20
       - name: Save voice audition and technical preview (not social publication)
         uses: actions/upload-artifact@v4
         with:
-          name: Klyptiq-Kokoro-voices-and-draft
+          name: Klyptiq-Kokoro-voices-and-1080p-review
           path: |
             output/voice-auditions/*.wav
-            output/Klyptiq_Kokoro_energetic_draft.mp4
+            output/Klyptiq_Kokoro_1080p_review.mp4
           if-no-files-found: error
           retention-days: 14
