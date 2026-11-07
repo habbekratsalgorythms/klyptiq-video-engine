@@ -19,11 +19,34 @@ cd klyptiq-video-engine
 bash install_and_test.sh
 ```
 
-Setup installs free FFmpeg, Python and Pillow, runs tests, then tries to install a **local neural Piper voice** and render a **1080×1920 review MP4**. It may request sudo permission and network access for dependencies and official editorial sample media. The video stays local: nothing is published to Metricool.
+Setup installs free FFmpeg, Python and Pillow, runs tests, then first tries to install a **more expressive local Kokoro neural voice** and render a **1080×1920 review MP4 with slow photo movement**. If Kokoro is unavailable, it falls back to Piper. It may request sudo permission and network access for dependencies and official editorial sample media. The video stays local: nothing is published to Metricool.
 
-### Better voice without Descript credits
+### More energetic gaming voice — preferred
 
-The new installer uses `en_US-kristin-medium`, a voice trained from LibriVox public-domain recordings. The downloaded model is checksum-verified and stored under ignored `models/`. Read the upstream MODEL_CARD before using any voice commercially.
+The original Piper narrator was judged too flat for Klyptiq Gaming. Use Kokoro for new gaming Shorts instead. Kokoro-ONNX is MIT licensed and the official Kokoro weights are Apache-2.0 licensed. Upstream SHA-256 verified model and voices are kept in ignored `models/`, not in Git.
+
+```bash
+bash scripts/setup_kokoro.sh
+bash scripts/prepare_editorial_media.sh
+. .venv/bin/activate
+python scripts/audition_kokoro.py
+python render.py briefs/energetic-story-kokoro.json --tts kokoro \
+  --model models/kokoro-v1.0.fp16.onnx --voice am_puck \
+  --pace 1.12 --motion --quality production \
+  -o output/Klyptiq_energetic_story_1080p.mp4
+```
+
+- Voice options `am_puck`, `am_fenrir` and `am_michael` are provided in `output/voice-auditions/` for listening.
+- The clip at https://www.youtube.com/shorts/LHAGrPUeJw4 is inspiration for **general pacing and energy**, not a source for cloning the speaker.
+- Per-scene `pace` from 0.85 to 1.30 controls emphasis without brute-force speeding up the entire exported MP4.
+- The GitHub Actions workflow `kokoro-audition.yml` generates three audition WAVs and one 1080p review MP4, without any social publication.
+- The model download totals approximately 192 MB; inference happens locally without paid AI credits.
+
+### Piper fallback — still available
+
+
+
+The optional fallback uses `en_US-kristin-medium`, a voice trained from LibriVox public-domain recordings. The downloaded model is checksum-verified and stored under ignored `models/`. Read the upstream MODEL_CARD before using any voice commercially.
 
 If only the voice needs preparation:
 
@@ -36,7 +59,7 @@ python render.py briefs/visual-demo.json --tts piper \
   --quality production -o output/klyptiq-Piper-1080p.mp4
 ```
 
-The `--quality production` guard rejects eSpeak voice or below-1080×1920 video, so robotic technical previews cannot accidentally be treated as production quality. Production still requires a human to approve final content before uploading.
+The `--quality production` guard requires either Piper or Kokoro (and rejects eSpeak) or below-1080×1920 video, so robotic technical previews cannot accidentally be treated as production quality. Production still requires a human to approve final content before uploading.
 
 For cheaper technical testing, use `--quality preview --width 360 --height 640`. Never publish these previews.
 
@@ -52,7 +75,7 @@ You can place other authorized image files in `assets/` and reference them from 
 
 ### Free GitHub test builds
 
-The branch's `quality-check.yml` validates scene timing with synthetic artwork. `piper-preview.yml` renders a **separate neural-voice evaluation preview** using the downloaded Piper voice and the owner's editorial images. Neither workflow posts to social networks.
+The branch's `quality-check.yml` validates scene timing with synthetic artwork. `piper-preview.yml` renders a **Piper fallback evaluation preview** using the downloaded Piper voice and the owner's editorial images. Neither workflow posts to social networks.
 
 ## Limitations and safeguards
 
@@ -62,4 +85,4 @@ The branch's `quality-check.yml` validates scene timing with synthetic artwork. 
 - All renders require human quality review before posting.
 - No secrets, customer data, SpotlessPro Agent Lab access or automatic purchases.
 
-GitHub Actions runs three unit tests, makes a small downloadable technical MP4 and checks it has valid audio/video streams after code changes. No external publishing occurs.
+GitHub Actions runs unit and integration tests, makes a small downloadable technical MP4 and checks it has valid audio/video streams after code changes. No external publishing occurs.
