@@ -1,0 +1,28 @@
+{
+  "title": "GTA VI: 3 THINGS YOU WANT",
+  "label": "WISHLIST - NOT CONFIRMED",
+  "style": "analysis",
+  "script": "Could GTA Six borrow realism from Red Dead Redemption Two? Fans would love smarter wildlife, dynamic characters, and richer environmental details. Rockstar has shown the world of Leonida, but these specific Red Dead features are not all confirmed. What would you want most?",
+  "scenes": [
+    {
+      "caption": "Could GTA VI learn from RDR2?",
+      "asset": "../assets/lucia.jpg"
+    },
+    {
+      "caption": "Smarter wildlife and living environments",
+      "asset": "../assets/keys.jpg"
+    },
+    {
+      "caption": "More believable daily routines",
+      "asset": "../assets/vice.jpg"
+    },
+    {
+      "caption": "These features are NOT confirmed",
+      "asset": "../assets/park.jpg"
+    },
+    {
+      "caption": "Which feature would you want most?",
+      "asset": "../assets/jason.jpg"
+    }
+  ]
+}
