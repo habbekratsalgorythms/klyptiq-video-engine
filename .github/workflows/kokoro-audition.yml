@@ -1,0 +1,63 @@
+name: Audition energetic local Kokoro gaming voices
+on:
+  push:
+    branches:
+      - feature/energetic-kokoro-voice-20261107
+    paths:
+      - 'render.py'
+      - 'scripts/setup_kokoro.sh'
+      - 'scripts/audition_kokoro.py'
+      - 'briefs/energetic-story-kokoro.json'
+      - '.github/workflows/kokoro-audition.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audition:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install free rendering dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak fonts-dejavu-core curl
+          python -m venv .venv
+          . .venv/bin/activate
+          python -m pip install -r requirements.txt
+      - name: Set up signed-source Kokoro model with SHA256 verification
+        run: bash scripts/setup_kokoro.sh
+      - name: Make three separate original narrator voice auditions
+        run: |
+          . .venv/bin/activate
+          python scripts/audition_kokoro.py
+      - name: Prepare editorial test frames
+        run: bash scripts/prepare_editorial_media.sh
+      - name: Render scene-synced energetic video draft with am_puck
+        run: |
+          . .venv/bin/activate
+          python render.py briefs/energetic-story-kokoro.json \
+            --tts kokoro --model models/kokoro-v1.0.fp16.onnx \
+            --voice am_puck --pace 1.12 --motion \
+            --width 360 --height 640 --quality preview \
+            -o output/Klyptiq_Kokoro_energetic_draft.mp4
+      - name: Validate voice files and video+audio
+        run: |
+          test -s output/voice-auditions/am_puck.wav
+          test -s output/voice-auditions/am_fenrir.wav
+          test -s output/voice-auditions/am_michael.wav
+          test -s output/Klyptiq_Kokoro_energetic_draft.mp4
+          ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 output/Klyptiq_Kokoro_energetic_draft.mp4
+          ffmpeg -hide_banner -i output/Klyptiq_Kokoro_energetic_draft.mp4 -vn -af volumedetect -f null - 2>&1 | tail -20
+      - name: Save voice audition and technical preview (not social publication)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Klyptiq-Kokoro-voices-and-draft
+          path: |
+            output/voice-auditions/*.wav
+            output/Klyptiq_Kokoro_energetic_draft.mp4
+          if-no-files-found: error
+          retention-days: 14
