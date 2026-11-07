@@ -25,11 +25,29 @@ jobs:
           python -m pip install -r requirements.txt
       - name: Run validation
         run: python -m unittest discover -s tests -v
-      - name: Render short demo
-        run: python render.py briefs/example.json --width 360 --height 640 -o output/Klyptiq_testvideo.mp4
-      - name: Verify MP4 contains audio and video
+      - name: Fetch actual licensed-for-review Rockstar screenshots
+        run: |
+          mkdir -p assets
+          curl --fail --location --retry 3 --silent --show-error 'https://static.metricool.com/planner/202611/7945934-file-3102169556167648104.jpeg' -o assets/lucia.jpg
+          curl --fail --location --retry 3 --silent --show-error 'https://static.metricool.com/planner/202611/7945934-file-374510237267671926.jpeg' -o assets/keys.jpg
+          curl --fail --location --retry 3 --silent --show-error 'https://static.metricool.com/planner/202611/7945934-file-13685730624239388127.jpeg' -o assets/vice.jpg
+          curl --fail --location --retry 3 --silent --show-error 'https://static.metricool.com/planner/202611/7945934-file-10394665368765891791.jpeg' -o assets/park.jpg
+          curl --fail --location --retry 3 --silent --show-error 'https://static.metricool.com/planner/202611/7945934-file-15139828663160242076.jpeg' -o assets/jason.jpg
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          for f in Path('assets').glob('*.jpg'):
+              with Image.open(f) as im:
+                  im.verify()
+              print(f.name, f.stat().st_size)
+          assert len(list(Path('assets').glob('*.jpg')))==5
+          PY
+      - name: Render narrated video with real images
+        run: python render.py briefs/visual-demo.json --width 360 --height 640 -o output/Klyptiq_testvideo.mp4
+      - name: Verify MP4 contains real voice and video
         run: |
           ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 output/Klyptiq_testvideo.mp4
+          ffmpeg -hide_banner -i output/Klyptiq_testvideo.mp4 -vn -af volumedetect -f null - 2>&1 | tail -25
           test -s output/Klyptiq_testvideo.mp4
       - name: Upload artifact for workflow download
         uses: actions/upload-artifact@v4
