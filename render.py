@@ -124,7 +124,7 @@ def render(brief_path,out,engine,model,voice,width,height,crf):
         import re
         found=re.search(r"mean_volume:\\s*(-?[0-9.]+) dB",measure)
         if not found or float(found.group(1))<-33:
-            raise RuntimeError("Voice too quiet or inaudible: loudness validation failed")
+            raise RuntimeError(f"Voice too quiet or inaudible: mean={found.group(1) if found else 'missing'} dB; ffmpeg output={measure[-1300:]}")
         os.replace(target,out)
         return {"video":str(out),"duration_seconds":round(length(out),2),"audio_seconds":round(audio_length,2),"resolution":f"{width}x{height}","scenes":len(scenes)}
 
