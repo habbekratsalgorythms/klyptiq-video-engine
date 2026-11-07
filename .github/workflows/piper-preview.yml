@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - feature/local-piper-production-gates-20261107
+      - feature/cinematic-motion-overlay-20261107
     paths:
       - 'render.py'
       - 'briefs/**'
@@ -35,7 +36,7 @@ jobs:
         run: |
           . .venv/bin/activate
           python render.py briefs/visual-demo.json --tts piper --model models/en_US-kristin-medium.onnx \
-            --quality production -o output/Klyptiq_Piper_review_1080p.mp4
+            --quality production --motion -o output/Klyptiq_Piper_review_1080p.mp4
       - name: Verify presence of H264 video and AAC voice audio
         run: |
           ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 output/Klyptiq_Piper_review_1080p.mp4
@@ -44,6 +45,6 @@ jobs:
       - name: Upload private-to-workflow review artifact (no social publishing)
         uses: actions/upload-artifact@v4
         with:
-          name: Klyptiq-Piper-1080p-review
+          name: Klyptiq-Piper-1080p-cinematic-review
           path: output/Klyptiq_Piper_review_1080p.mp4
           retention-days: 7

@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - feature/local-piper-production-gates-20261107
+      - feature/cinematic-motion-overlay-20261107
   workflow_dispatch:
 permissions:
   contents: read

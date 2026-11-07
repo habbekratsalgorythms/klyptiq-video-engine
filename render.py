@@ -68,6 +68,57 @@ def make_slide(path,w,h,title,subtitle,source,style,label):
     centered(d,int(h*.948),"KLYPTIQ GAMING  |  INDEPENDENT FAN COVERAGE",font(int(w*.021),True),(165,185,193),w)
     im.save(path)
 
+def make_text_overlay(path,w,h,title,subtitle,label):
+    """The typography is fixed on screen while only the photography moves."""
+    im=Image.new("RGBA",(w,h),(0,0,0,0))
+    head=Image.new("RGBA",(w,int(h*.16)),(5,9,18,230))
+    im.alpha_composite(head,(0,0))
+    d=ImageDraw.Draw(im)
+    centered(d,int(h*.025),label,font(int(w*.028),True),(125,239,220,255),w)
+    title_font=font(int(w*.053),True)
+    for idx,line in enumerate(wrap(d,title.upper(),title_font,w-92)[:3]):
+        centered(d,int(h*.064)+idx*int(w*.066),line,title_font,(255,255,255,255),w,2)
+    bottom=int(h*.765)
+    panel=Image.new("RGBA",(w-64,int(h*.135)),(0,0,0,232))
+    im.alpha_composite(panel,(32,bottom-12));d=ImageDraw.Draw(im)
+    sf=font(int(w*.047),True)
+    for idx,line in enumerate(wrap(d,subtitle,sf,w-116)[:3]):
+        centered(d,bottom+idx*int(w*.065),line,sf,(255,255,255,255),w,3)
+    centered(d,int(h*.948),"KLYPTIQ GAMING  |  INDEPENDENT FAN COVERAGE",font(int(w*.021),True),(165,185,193,255),w)
+    im.save(path)
+
+def render_cinematic_video(work,brief,scenes,durations,w,h,crf,wav,total_length,target):
+    """Subtle photo-only Ken Burns motion, with fully opaque media and fixed captions."""
+    clips=[]
+    for i,(scene,secs) in enumerate(zip(scenes,durations)):
+        base=work/f"photo_{i:02d}.png"
+        overlay=work/f"text_{i:02d}.png"
+        clip=work/f"motion_{i:02d}.mp4"
+        background(w,h,scene.get("_asset"),brief.get("style","news")).save(base)
+        make_text_overlay(overlay,w,h,brief["title"],scene["caption"],brief.get("label","NEWS / ANALYSIS"))
+        # 2.5% zoom per scene maximum. Captions stay stationary in a separate alpha layer.
+        filtergraph=(
+            f"[0:v]zoompan=z='min(1.0+on*0.00007,1.025)':"
+            f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
+            f"d=1:s={w}x{h}:fps=30[photo];"
+            f"[photo][1:v]overlay=0:0:shortest=1,format=yuv420p[v]"
+        )
+        run(["ffmpeg","-hide_banner","-loglevel","error","-y",
+             "-loop","1","-framerate","30","-i",base,
+             "-loop","1","-framerate","30","-i",overlay,
+             "-filter_complex",filtergraph,"-map","[v]","-an",
+             "-t",f"{secs:.5f}","-r","30","-c:v","libx264",
+             "-preset","veryfast","-crf",str(crf),"-pix_fmt","yuv420p",clip])
+        clips.append(clip)
+    concat=work/"motion_concat.txt"
+    concat.write_text("".join(f"file '{path}'\n" for path in clips))
+    run(["ffmpeg","-hide_banner","-loglevel","error","-y",
+         "-safe","0","-f","concat","-i",concat,"-i",wav,
+         "-map","0:v:0","-map","1:a:0","-c:v","copy",
+         "-c:a","aac","-b:a","192k",
+         "-af","loudnorm=I=-16:TP=-1.5:LRA=7",
+         "-movflags","+faststart","-t",str(total_length),target])
+
 def length(path):
     return float(run(["ffprobe","-v","error","-show_entries","format=duration","-of","default=noprint_wrappers=1:nokey=1",path]).stdout.strip())
 
@@ -131,7 +182,7 @@ def build_narration(work,brief,scenes,engine,model,voice):
     durations[-1]+=audio_length-sum(durations)+0.6
     return wav,durations,audio_length,audio_length+0.6
 
-def render(brief_path,out,engine,model,voice,width,height,crf,quality="preview"):
+def render(brief_path,out,engine,model,voice,width,height,crf,quality="preview",motion=False):
     for name in ("ffmpeg","ffprobe",engine):
         if not shutil.which(name): raise RuntimeError("Missing required executable: "+name)
     if quality=="production" and (engine!="piper" or width<1080 or height<1920):
@@ -143,15 +194,18 @@ def render(brief_path,out,engine,model,voice,width,height,crf,quality="preview")
         scenes=brief["scenes"]
         wav,durations,audio_length,total_length=build_narration(work,brief,scenes,engine,model,voice)
         if not 3<=audio_length<=180: raise ValueError("Invalid audio duration")
-        manifest=work/"frames.txt"
-        with manifest.open("w") as f:
-            for i,(scene,secs) in enumerate(zip(scenes,durations)):
-                slide=work/f"scene{i:02d}.png"
-                make_slide(slide,width,height,brief["title"],scene["caption"],scene.get("_asset"),brief.get("style","news"),brief.get("label","NEWS / ANALYSIS"))
-                f.write(f"file '{slide}'\nduration {secs:.5f}\n")
-            f.write(f"file '{slide}'\n")
         target=work/"video.mp4"
-        run(["ffmpeg","-hide_banner","-loglevel","error","-y","-safe","0","-f","concat","-i",manifest,"-i",wav,"-vf",f"fps=30,scale={width}:{height}:flags=lanczos,format=yuv420p","-af","loudnorm=I=-16:TP=-1.5:LRA=7","-c:v","libx264","-preset","veryfast","-crf",str(crf),"-c:a","aac","-b:a","192k","-movflags","+faststart","-t",str(total_length),target])
+        if motion:
+            render_cinematic_video(work,brief,scenes,durations,width,height,crf,wav,total_length,target)
+        else:
+            manifest=work/"frames.txt"
+            with manifest.open("w") as f:
+                for i,(scene,secs) in enumerate(zip(scenes,durations)):
+                    slide=work/f"scene{i:02d}.png"
+                    make_slide(slide,width,height,brief["title"],scene["caption"],scene.get("_asset"),brief.get("style","news"),brief.get("label","NEWS / ANALYSIS"))
+                    f.write(f"file '{slide}'\nduration {secs:.5f}\n")
+                f.write(f"file '{slide}'\n")
+            run(["ffmpeg","-hide_banner","-loglevel","error","-y","-safe","0","-f","concat","-i",manifest,"-i",wav,"-vf",f"fps=30,scale={width}:{height}:flags=lanczos,format=yuv420p","-af","loudnorm=I=-16:TP=-1.5:LRA=7","-c:v","libx264","-preset","veryfast","-crf",str(crf),"-c:a","aac","-b:a","192k","-movflags","+faststart","-t",str(total_length),target])
         # Quality gates: a blank-background video or missing/quiet voice must fail, not publish.
         if not all(scene.get("_asset") for scene in scenes):
             raise ValueError("No finished videos without an approved image for every scene")
@@ -169,9 +223,10 @@ def main():
     p.add_argument("--tts",choices=["espeak","piper"],default="espeak");p.add_argument("--model");p.add_argument("--voice",default="en-us")
     p.add_argument("--width",type=int,default=1080);p.add_argument("--height",type=int,default=1920);p.add_argument("--crf",type=int,default=20)
     p.add_argument("--quality",choices=["preview","production"],default="preview")
+    p.add_argument("--motion",action="store_true",help="Animate only source photographs; keep title and captions fixed")
     a=p.parse_args()
     if a.width<320 or a.height<568 or a.width%2 or a.height%2: p.error("Resolution must be even and at least 320x568")
-    try:print(json.dumps(render(a.brief,a.output,a.tts,a.model,a.voice,a.width,a.height,a.crf,a.quality),indent=2))
+    try:print(json.dumps(render(a.brief,a.output,a.tts,a.model,a.voice,a.width,a.height,a.crf,a.quality,a.motion),indent=2))
     except Exception as e:print(f"ERROR: {type(e).__name__}: {e}",file=sys.stderr);sys.exit(1)
 
 if __name__=="__main__": main()
