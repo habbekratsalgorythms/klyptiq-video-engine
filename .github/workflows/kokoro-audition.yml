@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - feature/energetic-kokoro-voice-20261107
+      - feature/pop-shorts-20261108
     paths:
       - 'render.py'
       - 'scripts/setup_kokoro.sh'
@@ -41,23 +42,23 @@ jobs:
           . .venv/bin/activate
           python render.py briefs/energetic-story-kokoro.json \
             --tts kokoro --model models/kokoro-v1.0.fp16.onnx \
-            --voice am_puck --pace 1.12 --motion \
+            --voice am_puck --pace 1.12 --pop \
             --width 1080 --height 1920 --quality production \
-            -o output/Klyptiq_Kokoro_1080p_review.mp4
+            -o output/Klyptiq_Pop_1080p_review.mp4
       - name: Validate voice files and video+audio
         run: |
           test -s output/voice-auditions/am_puck.wav
           test -s output/voice-auditions/am_fenrir.wav
           test -s output/voice-auditions/am_michael.wav
-          test -s output/Klyptiq_Kokoro_1080p_review.mp4
-          ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 output/Klyptiq_Kokoro_1080p_review.mp4
-          ffmpeg -hide_banner -i output/Klyptiq_Kokoro_1080p_review.mp4 -vn -af volumedetect -f null - 2>&1 | tail -20
+          test -s output/Klyptiq_Pop_1080p_review.mp4
+          ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 output/Klyptiq_Pop_1080p_review.mp4
+          ffmpeg -hide_banner -i output/Klyptiq_Pop_1080p_review.mp4 -vn -af volumedetect -f null - 2>&1 | tail -20
       - name: Save voice audition and technical preview (not social publication)
         uses: actions/upload-artifact@v4
         with:
-          name: Klyptiq-Kokoro-voices-and-1080p-review
+          name: Klyptiq-Pop-voices-and-1080p-review
           path: |
             output/voice-auditions/*.wav
-            output/Klyptiq_Kokoro_1080p_review.mp4
+            output/Klyptiq_Pop_1080p_review.mp4
           if-no-files-found: error
           retention-days: 14
