@@ -122,7 +122,30 @@ def render_cinematic_video(work,brief,scenes,durations,w,h,crf,wav,total_length,
 def length(path):
     return float(run(["ffprobe","-v","error","-show_entries","format=duration","-of","default=noprint_wrappers=1:nokey=1",path]).stdout.strip())
 
-def speak(script,path,engine,model,voice):
+_KOKORO_CACHE = {}
+def speak(script,path,engine,model,voice,pace=1.0):
+    """Synthesize one spoken beat; Kokoro is lazy-loaded and reused between beats."""
+    if engine == "kokoro":
+        if not 0.85 <= float(pace) <= 1.30:
+            raise ValueError("Kokoro pace must be between 0.85 and 1.30")
+        if not model or not Path(model).is_file():
+            raise ValueError("Kokoro needs an existing --model path")
+        model_path=Path(model).resolve()
+        voices_path=model_path.parent/"voices-v1.0.bin"
+        if not voices_path.is_file():
+            raise ValueError("Kokoro voice embeddings missing: "+str(voices_path))
+        try:
+            import soundfile as sf
+            from kokoro_onnx import Kokoro
+        except ImportError as e:
+            raise RuntimeError("Run bash scripts/setup_kokoro.sh first") from e
+        cache_key=(str(model_path),str(voices_path))
+        if cache_key not in _KOKORO_CACHE:
+            _KOKORO_CACHE[cache_key]=Kokoro(str(model_path),str(voices_path))
+        samples,sample_rate=_KOKORO_CACHE[cache_key].create(
+            script,voice=voice,speed=float(pace),lang="en-us")
+        sf.write(path,samples,sample_rate,subtype="PCM_16")
+        return
     if engine=="piper":
         if not model or not Path(model).is_file(): raise ValueError("Specify existing --model /path/to/voice.onnx")
         subprocess.run(["piper","--model",model,"--output_file",path],input=script,text=True,check=True,capture_output=True)
@@ -144,20 +167,22 @@ def parse_brief(path):
         if not scene.get("caption"): raise ValueError("Each scene needs caption")
         if "voiceover" in scene and not isinstance(scene["voiceover"],str):
             raise ValueError("Scene voiceover must be text")
+        if "pace" in scene and (isinstance(scene["pace"],bool) or not isinstance(scene["pace"],(float,int)) or not 0.85<=scene["pace"]<=1.30):
+            raise ValueError("Scene pace must be a number between 0.85 and 1.30")
         if scene.get("asset"):
             path_asset=(Path(path).resolve().parent/scene["asset"]).resolve()
             if not path_asset.is_file(): raise FileNotFoundError("Missing image asset: "+str(path_asset))
             scene["_asset"]=str(path_asset)
     return brief
 
-def build_narration(work,brief,scenes,engine,model,voice):
+def build_narration(work,brief,scenes,engine,model,voice,pace=1.0):
     """Align each image to its actual narrated phrase, if scene voiceovers exist.
 
     When the older briefing schema is used, retain the legacy whole-script timing.
     """
     wav=work/"speech.wav"
     if not any(scene.get("voiceover") for scene in scenes):
-        speak(brief["script"],str(wav),engine,model,voice)
+        speak(brief["script"],str(wav),engine,model,voice,pace)
         audio_length=length(wav)
         weights=[max(3,len(s["caption"].split())) for s in scenes]
         total_length=audio_length+0.6
@@ -166,7 +191,7 @@ def build_narration(work,brief,scenes,engine,model,voice):
     for idx,scene in enumerate(scenes):
         raw=work/f"voice_{idx:02d}.wav"
         padded=work/f"voice_padded_{idx:02d}.wav"
-        speak(scene["voiceover"],str(raw),engine,model,voice)
+        speak(scene["voiceover"],str(raw),engine,model,voice,scene.get("pace",pace))
         raw_dur=length(raw)
         # Short, explicit pause between beats; each caption follows its spoken line.
         run(["ffmpeg","-hide_banner","-loglevel","error","-y",
@@ -182,17 +207,17 @@ def build_narration(work,brief,scenes,engine,model,voice):
     durations[-1]+=audio_length-sum(durations)+0.6
     return wav,durations,audio_length,audio_length+0.6
 
-def render(brief_path,out,engine,model,voice,width,height,crf,quality="preview",motion=False):
-    for name in ("ffmpeg","ffprobe",engine):
+def render(brief_path,out,engine,model,voice,width,height,crf,quality="preview",motion=False,pace=1.0):
+    for name in ("ffmpeg","ffprobe",engine if engine!="kokoro" else "ffmpeg"):
         if not shutil.which(name): raise RuntimeError("Missing required executable: "+name)
-    if quality=="production" and (engine!="piper" or width<1080 or height<1920):
-        raise ValueError("Production needs local Piper voice and at least 1080x1920")
+    if quality=="production" and (engine not in ("piper","kokoro") or width<1080 or height<1920):
+        raise ValueError("Production needs a neural Piper/Kokoro voice and at least 1080x1920")
     brief=parse_brief(brief_path)
     out=Path(out).resolve();out.parent.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="klyptiq-") as tmp:
         work=Path(tmp)
         scenes=brief["scenes"]
-        wav,durations,audio_length,total_length=build_narration(work,brief,scenes,engine,model,voice)
+        wav,durations,audio_length,total_length=build_narration(work,brief,scenes,engine,model,voice,pace)
         if not 3<=audio_length<=180: raise ValueError("Invalid audio duration")
         target=work/"video.mp4"
         if motion:
@@ -220,13 +245,15 @@ def render(brief_path,out,engine,model,voice,width,height,crf,quality="preview",
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("brief");p.add_argument("-o","--output",default="output/klyptiq-short.mp4")
-    p.add_argument("--tts",choices=["espeak","piper"],default="espeak");p.add_argument("--model");p.add_argument("--voice",default="en-us")
+    p.add_argument("--tts",choices=["espeak","piper","kokoro"],default="espeak");p.add_argument("--model");p.add_argument("--voice",default="en-us")
+    p.add_argument("--pace",type=float,default=1.0,help="Kokoro speech pace, 0.85–1.30; scene-specific pace overrides")
     p.add_argument("--width",type=int,default=1080);p.add_argument("--height",type=int,default=1920);p.add_argument("--crf",type=int,default=20)
     p.add_argument("--quality",choices=["preview","production"],default="preview")
     p.add_argument("--motion",action="store_true",help="Animate only source photographs; keep title and captions fixed")
     a=p.parse_args()
     if a.width<320 or a.height<568 or a.width%2 or a.height%2: p.error("Resolution must be even and at least 320x568")
-    try:print(json.dumps(render(a.brief,a.output,a.tts,a.model,a.voice,a.width,a.height,a.crf,a.quality,a.motion),indent=2))
+    if not 0.85<=a.pace<=1.30: p.error("Pace must be between 0.85 and 1.30")
+    try:print(json.dumps(render(a.brief,a.output,a.tts,a.model,a.voice,a.width,a.height,a.crf,a.quality,a.motion,a.pace),indent=2))
     except Exception as e:print(f"ERROR: {type(e).__name__}: {e}",file=sys.stderr);sys.exit(1)
 
 if __name__=="__main__": main()
