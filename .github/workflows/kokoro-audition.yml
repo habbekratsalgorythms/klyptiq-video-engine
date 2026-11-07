@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - feature/energetic-kokoro-voice-20261107
+      - feature/pop-shorts-20261108
     paths:
       - 'render.py'
       - 'scripts/setup_kokoro.sh'
@@ -41,9 +42,9 @@ jobs:
           . .venv/bin/activate
           python render.py briefs/energetic-story-kokoro.json \
             --tts kokoro --model models/kokoro-v1.0.fp16.onnx \
-            --voice am_puck --pace 1.12 --motion \
+            --voice am_puck --pace 1.12 --pop \
             --width 1080 --height 1920 --quality production \
-            -o output/Klyptiq_Kokoro_1080p_review.mp4
+            -o output/Klyptiq_Pop_1080p_review.mp4
       - name: Validate voice files and video+audio
         run: |
           test -s output/voice-auditions/am_puck.wav
@@ -55,7 +56,7 @@ jobs:
       - name: Save voice audition and technical preview (not social publication)
         uses: actions/upload-artifact@v4
         with:
-          name: Klyptiq-Kokoro-voices-and-1080p-review
+          name: Klyptiq-Pop-voices-and-1080p-review
           path: |
             output/voice-auditions/*.wav
             output/Klyptiq_Kokoro_1080p_review.mp4
