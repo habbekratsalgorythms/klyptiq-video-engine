@@ -123,7 +123,7 @@ def build_narration(work,brief,scenes,engine,model,voice):
              "-ac","1","-ar","22050","-c:a","pcm_s16le",padded])
         tracks.append(padded);durations.append(length(padded))
     manifest=work/"audio_segments.txt"
-    manifest.write_text("".join(f"file '{path}'\\n" for path in tracks))
+    manifest.write_text("".join(f"file '{path}'\n" for path in tracks))
     run(["ffmpeg","-hide_banner","-loglevel","error","-y","-safe","0",
          "-f","concat","-i",manifest,"-c:a","pcm_s16le",wav])
     audio_length=length(wav)
