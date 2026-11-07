@@ -76,7 +76,7 @@ def speak(script,path,engine,model,voice):
         if not model or not Path(model).is_file(): raise ValueError("Specify existing --model /path/to/voice.onnx")
         subprocess.run(["piper","--model",model,"--output_file",path],input=script,text=True,check=True,capture_output=True)
     elif engine=="espeak":
-        run(["espeak","-v",voice,"-s","151","-a","170","-w",path,script])
+        run(["espeak","-v",voice,"-s","145","-a","200","-w",path,script])
     else: raise ValueError("Unknown speech engine")
 
 def parse_brief(path):
@@ -116,7 +116,15 @@ def render(brief_path,out,engine,model,voice,width,height,crf):
                 f.write(f"file '{slide}'\nduration {secs:.5f}\n")
             f.write(f"file '{slide}'\n")
         target=work/"video.mp4"
-        run(["ffmpeg","-hide_banner","-loglevel","error","-y","-safe","0","-f","concat","-i",manifest,"-i",wav,"-vf",f"fps=30,scale={width}:{height}:flags=lanczos,format=yuv420p","-c:v","libx264","-preset","veryfast","-crf",str(crf),"-c:a","aac","-b:a","160k","-movflags","+faststart","-t",str(total_length),target])
+        run(["ffmpeg","-hide_banner","-loglevel","error","-y","-safe","0","-f","concat","-i",manifest,"-i",wav,"-vf",f"fps=30,scale={width}:{height}:flags=lanczos,format=yuv420p","-af","loudnorm=I=-16:TP=-1.5:LRA=7","-c:v","libx264","-preset","veryfast","-crf",str(crf),"-c:a","aac","-b:a","192k","-movflags","+faststart","-t",str(total_length),target])
+        # Quality gates: a blank-background video or missing/quiet voice must fail, not publish.
+        if not all(scene.get("_asset") for scene in scenes):
+            raise ValueError("No finished videos without an approved image for every scene")
+        measure=run(["ffmpeg","-hide_banner","-i",target,"-vn","-af","volumedetect","-f","null","-"]).stderr
+        import re
+        found=re.search(r"mean_volume:\\s*(-?[0-9.]+) dB",measure)
+        if not found or float(found.group(1))<-33:
+            raise RuntimeError("Voice too quiet or inaudible: loudness validation failed")
         os.replace(target,out)
         return {"video":str(out),"duration_seconds":round(length(out),2),"audio_seconds":round(audio_length,2),"resolution":f"{width}x{height}","scenes":len(scenes)}
 
