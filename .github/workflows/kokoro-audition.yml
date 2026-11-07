@@ -50,15 +50,15 @@ jobs:
           test -s output/voice-auditions/am_puck.wav
           test -s output/voice-auditions/am_fenrir.wav
           test -s output/voice-auditions/am_michael.wav
-          test -s output/Klyptiq_Kokoro_1080p_review.mp4
-          ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 output/Klyptiq_Kokoro_1080p_review.mp4
-          ffmpeg -hide_banner -i output/Klyptiq_Kokoro_1080p_review.mp4 -vn -af volumedetect -f null - 2>&1 | tail -20
+          test -s output/Klyptiq_Pop_1080p_review.mp4
+          ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 output/Klyptiq_Pop_1080p_review.mp4
+          ffmpeg -hide_banner -i output/Klyptiq_Pop_1080p_review.mp4 -vn -af volumedetect -f null - 2>&1 | tail -20
       - name: Save voice audition and technical preview (not social publication)
         uses: actions/upload-artifact@v4
         with:
           name: Klyptiq-Pop-voices-and-1080p-review
           path: |
             output/voice-auditions/*.wav
-            output/Klyptiq_Kokoro_1080p_review.mp4
+            output/Klyptiq_Pop_1080p_review.mp4
           if-no-files-found: error
           retention-days: 14
