@@ -119,6 +119,93 @@ def render_cinematic_video(work,brief,scenes,durations,w,h,crf,wav,total_length,
          "-af","loudnorm=I=-16:TP=-1.5:LRA=7",
          "-movflags","+faststart","-t",str(total_length),target])
 
+def split_caption_beats(text, max_words=3):
+    """Short, legible chunks; beat timing follows each narrated scene."""
+    words=text.strip().split()
+    if not words:
+        raise ValueError("A dynamic caption needs at least one word")
+    chunks=[" ".join(words[i:i+max_words]) for i in range(0,len(words),max_words)]
+    if len(chunks)>4:
+        # Avoid more than four rapid flashes in a single scene.
+        size=math.ceil(len(words)/4)
+        chunks=[" ".join(words[i:i+size]) for i in range(0,len(words),size)]
+    return chunks
+
+def make_pop_caption(path,w,h,text,scene_index,scene_count):
+    """High contrast caption card. No artist assets or external font downloads."""
+    im=Image.new("RGBA",(w,h),(0,0,0,0))
+    d=ImageDraw.Draw(im)
+    top=int(h*.744); bottom=int(h*.901)
+    inset=max(10,int(w*.038))
+    d.rounded_rectangle((inset,top,w-inset,bottom),radius=max(8,int(w*.026)),fill=(3,12,24,244),outline=(92,245,224,255),width=max(2,int(w*.004)))
+    d.rounded_rectangle((inset,top,inset+int(w*.018),bottom),radius=max(2,int(w*.006)),fill=(92,245,224,255))
+    num=f"{scene_index+1:02d} / {scene_count:02d}"
+    d.text((inset+int(w*.034),top+int(h*.008)),num,font=font(max(10,int(w*.023)),True),fill=(135,224,211,255))
+    size=max(18,int(w*.061))
+    while size>14:
+        face=font(size,True)
+        lines=wrap(d,text.upper(),face,w-2*inset-int(w*.12))
+        if len(lines)<=2: break
+        size-=2
+    line_h=int(size*1.32)
+    first_y=top+int(h*.055)
+    for i,line in enumerate(lines[:2]):
+        bb=d.textbbox((0,0),line,font=face,stroke_width=2)
+        xx=(w-(bb[2]-bb[0]))//2
+        yy=first_y+i*line_h
+        # Original cyan/yellow kinetic text treatment.
+        color=(246,226,101,255) if i==0 else (255,255,255,255)
+        d.text((xx,yy),line,font=face,fill=color,stroke_width=max(2,int(w*.004)),stroke_fill=(0,0,0,255))
+    im.save(path)
+
+def render_pop_video(work,brief,scenes,durations,w,h,crf,wav,total_length,target):
+    """Klyptiq pop style: faster push-in + up to four caption changes per scene."""
+    clips=[]
+    for i,(scene,secs) in enumerate(zip(scenes,durations)):
+        base=work/f"pop_photo_{i:02d}.png"
+        header=work/f"pop_header_{i:02d}.png"
+        clip=work/f"pop_clip_{i:02d}.mp4"
+        background(w,h,scene.get("_asset"),brief.get("style","news")).save(base)
+        # Keep a fixed header and footer, but draw changing captions separately.
+        make_text_overlay(header,w,h,brief["title"],"",brief.get("label","NEWS / ANALYSIS"))
+        beats=split_caption_beats(scene["caption"])
+        paths=[]
+        for j,words in enumerate(beats):
+            p=work/f"pop_{i:02d}_beat_{j:02d}.png"
+            make_pop_caption(p,w,h,words,i,len(scenes))
+            paths.append(p)
+        inputs=["-loop","1","-framerate","30","-i",str(base),
+                "-loop","1","-framerate","30","-i",str(header)]
+        for p in paths: inputs+=["-loop","1","-framerate","30","-i",str(p)]
+        speed="0.00020" if i%2==0 else "0.00015"
+        graph=(f"[0:v]zoompan=z='min(1.0+on*{speed},1.065)':"
+               f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
+               f"d=1:s={w}x{h}:fps=30[photo];"
+               f"[photo][1:v]overlay=0:0:shortest=1[base]")
+        preceding="base"
+        for j in range(len(paths)):
+            # Bound the first and last beat so no caption disappears between scenes.
+            begin=secs*j/len(paths)
+            end=secs*(j+1)/len(paths)+0.005
+            out=f"beat{j}"
+            graph+=(f";[{preceding}][{j+2}:v]"
+                    f"overlay=0:0:enable='between(t,{begin:.3f},{end:.3f})'[{out}]")
+            preceding=out
+        graph+=f";[{preceding}]format=yuv420p[v]"
+        run(["ffmpeg","-hide_banner","-loglevel","error","-y",
+             *inputs,"-filter_complex",graph,"-map","[v]","-an",
+             "-t",f"{secs:.5f}","-r","30","-c:v","libx264",
+             "-preset","veryfast","-crf",str(crf),"-pix_fmt","yuv420p",clip])
+        clips.append(clip)
+    manifest=work/"pop_concat.txt"
+    manifest.write_text("".join(f"file '{p}'\n" for p in clips))
+    run(["ffmpeg","-hide_banner","-loglevel","error","-y",
+         "-safe","0","-f","concat","-i",manifest,"-i",wav,
+         "-map","0:v:0","-map","1:a:0","-c:v","copy",
+         "-c:a","aac","-b:a","192k",
+         "-af","loudnorm=I=-16:TP=-1.5:LRA=7",
+         "-movflags","+faststart","-t",str(total_length),target])
+
 def length(path):
     return float(run(["ffprobe","-v","error","-show_entries","format=duration","-of","default=noprint_wrappers=1:nokey=1",path]).stdout.strip())
 
@@ -207,7 +294,7 @@ def build_narration(work,brief,scenes,engine,model,voice,pace=1.0):
     durations[-1]+=audio_length-sum(durations)+0.6
     return wav,durations,audio_length,audio_length+0.6
 
-def render(brief_path,out,engine,model,voice,width,height,crf,quality="preview",motion=False,pace=1.0):
+def render(brief_path,out,engine,model,voice,width,height,crf,quality="preview",motion=False,pace=1.0,pop=False):
     for name in ("ffmpeg","ffprobe",engine if engine!="kokoro" else "ffmpeg"):
         if not shutil.which(name): raise RuntimeError("Missing required executable: "+name)
     if quality=="production" and (engine not in ("piper","kokoro") or width<1080 or height<1920):
@@ -220,7 +307,9 @@ def render(brief_path,out,engine,model,voice,width,height,crf,quality="preview",
         wav,durations,audio_length,total_length=build_narration(work,brief,scenes,engine,model,voice,pace)
         if not 3<=audio_length<=180: raise ValueError("Invalid audio duration")
         target=work/"video.mp4"
-        if motion:
+        if pop:
+            render_pop_video(work,brief,scenes,durations,width,height,crf,wav,total_length,target)
+        elif motion:
             render_cinematic_video(work,brief,scenes,durations,width,height,crf,wav,total_length,target)
         else:
             manifest=work/"frames.txt"
@@ -250,10 +339,11 @@ def main():
     p.add_argument("--width",type=int,default=1080);p.add_argument("--height",type=int,default=1920);p.add_argument("--crf",type=int,default=20)
     p.add_argument("--quality",choices=["preview","production"],default="preview")
     p.add_argument("--motion",action="store_true",help="Animate only source photographs; keep title and captions fixed")
+    p.add_argument("--pop",action="store_true",help="Preview punchy animated-caption Shorts style, never auto-publish")
     a=p.parse_args()
     if a.width<320 or a.height<568 or a.width%2 or a.height%2: p.error("Resolution must be even and at least 320x568")
     if not 0.85<=a.pace<=1.30: p.error("Pace must be between 0.85 and 1.30")
-    try:print(json.dumps(render(a.brief,a.output,a.tts,a.model,a.voice,a.width,a.height,a.crf,a.quality,a.motion,a.pace),indent=2))
+    try:print(json.dumps(render(a.brief,a.output,a.tts,a.model,a.voice,a.width,a.height,a.crf,a.quality,a.motion,a.pace,a.pop),indent=2))
     except Exception as e:print(f"ERROR: {type(e).__name__}: {e}",file=sys.stderr);sys.exit(1)
 
 if __name__=="__main__": main()
