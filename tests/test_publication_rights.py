@@ -67,6 +67,49 @@ class QuoteGateTests(unittest.TestCase):
         self.assertEqual(result["status"],"HUMAN_LEGAL_DECISION_REQUIRED")
         self.assertFalse(result["machine_publish_approved"])
 
+    def test_unanalyzed_rockstar_screenshot_poll_does_not_meet_quote_gate(self):
+        record=self.base.copy()
+        record["assets"]=[{
+            "rights_basis":"quote_article_15a",
+            "asset_type":"image",
+            "creator":"Rockstar Games",
+            "source_url":"https://www.rockstargames.com/VI/media",
+            "lawfully_disclosed":True,
+            "decorative_only":True,
+            "generic_poll_or_decoration":True,
+        }]
+        verdict=inspect_release(record)
+        self.assertEqual(verdict["status"],"BLOCK")
+        self.assertTrue(any("generic engagement poll" in b for b in verdict["blockers"]))
+
+    def test_discussed_screenshot_with_specific_image_necessity_still_needs_human(self):
+        record=self.base.copy()
+        record["assets"]=[{
+            "rights_basis":"quote_article_15a",
+            "asset_type":"image",
+            "creator":"Rockstar Games",
+            "source_url":"https://www.rockstargames.com/VI/media",
+            "lawfully_disclosed":True,
+            "quote_purpose":"Critically analyze an exact visual composition in the image",
+            "specific_criticism_or_review":"The caption explicitly discusses the photographed composition, contrast, and placement of visible elements.",
+            "why_this_exact_clip_is_needed":"The composition being criticized needs the published source screenshot as direct evidence.",
+            "why_this_length_is_proportionate":"For an image the relevant excerpt is the selected graphic portion, not a time span.",
+            "source_credit_as_displayed":"Rockstar Games — official gallery",
+            "personality_rights_check":"No misleading edits or distortion of the source picture.",
+            "publisher_policy_check":"Official fan policy may not cover branded commercial publishing.",
+            "neighboring_rights_check":"Screenshot provenance and potential producer rights assessed.",
+            "decorative_only":False,
+            "is_leaked_or_spoiler":False,
+            "generic_poll_or_decoration":False,
+            "why_this_image_is_necessary":"This exact published image contains the distinct element analyzed in the commentary.",
+            "why_image_extent_is_proportionate":"A narrow crop was considered, but the surrounding arrangement is necessary for visual criticism.",
+            "editorial_assessment_by":"editor",
+            "commercial_context_legal_analysis":"This brand-growth post requires a separate case-specific analysis of the intended commercial context."
+        }]
+        verdict=inspect_release(record)
+        self.assertEqual(verdict["status"],"HUMAN_LEGAL_DECISION_REQUIRED")
+        self.assertIs(verdict["machine_publish_approved"],False)
+
     def test_generic_visual_decoration_must_not_qualify(self):
         record=copy.deepcopy(self.base)
         record["assets"]=[{"creator":"Rockstar Games","source_url":"https://www.rockstargames.com/VI/media/videos",
