@@ -122,7 +122,7 @@ class DirectorTests(unittest.TestCase):
             self.assertIn("aac",info)
             # First shot is visibly top+bottom moving sources, not the old single panel.
             import io,subprocess
-            captured=subprocess.run(["ffmpeg","-v","error","-ss",".35","-i",str(output),
+            captured=subprocess.run(["ffmpeg","-v","error","-ss","0.35","-i",str(output),
                 "-frames:v","1","-f","image2pipe","-vcodec","png","pipe:1"],
                 check=True,capture_output=True).stdout
             image=Image.open(io.BytesIO(captured)).convert("RGB")
