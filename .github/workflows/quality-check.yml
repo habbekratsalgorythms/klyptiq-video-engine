@@ -8,6 +8,7 @@ on:
       - feature/cinematic-motion-overlay-20261107
       - feature/licensed-video-clips-20261108
       - feature/director-cuts-20261108
+      - feature/director-footage-threshold-20261108
   workflow_dispatch:
 permissions:
   contents: read
