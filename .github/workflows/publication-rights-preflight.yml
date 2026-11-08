@@ -7,6 +7,9 @@ on:
       - 'tests/test_publication_rights.py'
       - '.github/workflows/publication-rights-preflight.yml'
       - 'docs/PER_PUBLICATION_RIGHTS.md'
+      - 'scripts/per_post_revenue_preflight.py'
+      - 'tests/test_per_post_revenue.py'
+      - 'docs/PER_POST_MONETIZATION.md'
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,6 +25,8 @@ jobs:
         run: |
           python -m py_compile scripts/publication_rights_preflight.py
           python -m unittest discover -s tests -p test_publication_rights.py -v
+          python -m py_compile scripts/per_post_revenue_preflight.py
+          python -m unittest discover -s tests -p test_per_post_revenue.py -v
       - name: Confirm content cannot be auto-released by the preflight
         run: |
           python - <<'PY'
