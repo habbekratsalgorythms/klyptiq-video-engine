@@ -46,7 +46,8 @@ class DirectorTests(unittest.TestCase):
                 director_cut.prepare(data,p)
             data=render.parse_brief(p)
             for s in data["scenes"]:
-                s["shots"]=s["shots"][1:]+[{"asset":"a.png","media_rights":"self_recorded"}]
+                s["shots"]=[{"asset":"a.png","media_rights":"self_recorded"},
+                            {"asset":"b.png","media_rights":"self_recorded"}]
             with self.assertRaisesRegex(ValueError,"video"):
                 director_cut.prepare(data,p)
 
