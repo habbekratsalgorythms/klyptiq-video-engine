@@ -245,7 +245,7 @@ def render_director(work, brief, scenes, durations, w, h, crf, wav, total_length
                 picture = (f"[0:v]fps=30,scale={w}:{h}:force_original_aspect_ratio=increase,"
                            f"crop={w}:{h}:{x}:(ih-oh)/2,setsar=1,"
                            f"setpts={stretch:.5f}*(PTS-STARTPTS),fps=30,"
-                           f"tpad=stop_mode=clone:stop_duration=.15,"
+                           f"tpad=stop_mode=clone:stop_duration=0.15,"
                            f"trim=duration={seconds_this:.5f},setpts=PTS-STARTPTS[media];")
             else:
                 inputs = ["-loop","1","-framerate","30","-i",src]
