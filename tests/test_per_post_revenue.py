@@ -93,6 +93,21 @@ class PerPostRevenueTests(unittest.TestCase):
         record["monetization"]=["affiliate"]
         self.assertEqual(evaluate(record,today=TODAY)["status"],"BLOCK")
 
+    def test_commercial_licensed_video_is_allowed_when_all_rights_documented(self):
+        record=self.own()
+        record["assets"]=[{
+            "rights_basis":"licensed_commercial",
+            "creator":"Original footage licensor",
+            "source_url":"https://example.org/licensed-footage",
+            "lawfully_disclosed":True,
+            "license_evidence":"Signed commercial worldwide license covering YouTube ads for the exact visual",
+            "licensed_platforms":["youtube"],
+            "licensed_monetization":["platform_ads"]
+        }]
+        decision=evaluate(record,today=TODAY)
+        self.assertEqual(decision["status"],"READY_FOR_OWNER_AND_PLATFORM_REVIEW")
+        self.assertFalse(decision["can_auto_publish"])
+
     def test_unreviewed_rockstar_footage_stays_blocked_even_with_no_ads(self):
         record=self.quoted()
         record["assets"][0].pop("specific_criticism_or_review")

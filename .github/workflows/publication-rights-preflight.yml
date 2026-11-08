@@ -10,6 +10,8 @@ on:
       - 'scripts/per_post_revenue_preflight.py'
       - 'tests/test_per_post_revenue.py'
       - 'docs/PER_POST_MONETIZATION.md'
+  push:
+    branches: [fix/per-post-licensed-media-20261108]
   workflow_dispatch:
 permissions:
   contents: read
