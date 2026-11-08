@@ -76,5 +76,43 @@ class DirectorTests(unittest.TestCase):
             self.assertIn("h264",info)
             self.assertIn("aac",info)
 
+    def test_editorial_sources_must_stay_internal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);self.media(root);p=self.brief(root)
+            data=render.parse_brief(p)
+            data["scenes"][0]["shots"][0]["media_rights"]="editorial_review_only"
+            with self.assertRaisesRegex(ValueError,"internal_review"):
+                director_cut.prepare(data,p)
+            data["distribution"]="internal_review"
+            self.assertEqual(director_cut.prepare(data,p)["moving_shots"],3)
+
+    def test_original_music_is_audible_and_is_not_external_audio(self):
+        import wave
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp)/"music.wav"
+            director_cut.original_music_bed(p,4.0,bpm=142)
+            with wave.open(str(p)) as w:
+                self.assertEqual(w.getnchannels(),1)
+                self.assertEqual(w.getframerate(),22050)
+                self.assertGreater(w.getnframes(),85000)
+                raw=w.readframes(w.getnframes())
+            import array
+            samples=array.array("h");samples.frombytes(raw)
+            self.assertGreater(max(samples),200)
+            self.assertLess(min(samples),-200)
+
+    def test_editorial_storyboard_no_slideshow_fallback(self):
+        p=Path(__file__).resolve().parents[1]/"briefs/review/eight-faces-director.json"
+        data=json.loads(p.read_text())
+        self.assertEqual(data["distribution"],"internal_review")
+        self.assertEqual(data["source_url"],"https://www.rockstargames.com/VI/media/videos")
+        self.assertEqual(data["script"]," ".join(s["voiceover"] for s in data["scenes"]))
+        shots=[x for scene in data["scenes"] for x in scene["shots"]]
+        self.assertGreaterEqual(len(shots),16)
+        self.assertTrue(all(x["media_rights"]=="editorial_review_only" for x in shots))
+        self.assertTrue(all(x.get("asset_video","").endswith(".mp4") for x in shots))
+        self.assertGreaterEqual(len({x["asset_video"] for x in shots}),9)
+        self.assertTrue(all(len(s["shots"])>=3 for s in data["scenes"]))
+
 if __name__=="__main__":
     unittest.main()
