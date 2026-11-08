@@ -1,0 +1,75 @@
+name: Sample official GTA VI Launch Trailer by HTTP Range (editorial research only)
+on:
+  push:
+    branches: [feature/official-long-video-discovery-20261108]
+    paths: ['.github/workflows/rockstar-launch-sample.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  remote-sampling:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      SOURCE: https://media-rockstargames-com.akamaized.net/VI/downloads/videos/GTAVI_Launch_Trailer/GTAVI_Launch_Trailer.mp4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install FFmpeg/Pillow (no paid services)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          python -m pip install "Pillow>=10,<13"
+      - name: Verify approved official trailer and byte-range support
+        run: |
+          set -euo pipefail
+          curl -sfLI --max-time 25 "$SOURCE" -o "$RUNNER_TEMP/headers"
+          grep -iq '^content-type: video/mp4' "$RUNNER_TEMP/headers"
+          grep -iq '^accept-ranges: bytes' "$RUNNER_TEMP/headers"
+          grep -iq '^content-length: 781757793' "$RUNNER_TEMP/headers"
+          echo "Confirmed official Rockstar 782MB MP4; will NOT download entire video."
+          timeout 40 ffprobe -v error -rw_timeout 18000000 \
+            -show_entries stream=codec_name,width,height:format=duration \
+            -of default=noprint_wrappers=1 "$SOURCE" | head -24
+      - name: Sample seven distinct moments using direct remote seeking
+        run: |
+          set -euo pipefail
+          mkdir -p output/launch-thumbnails
+          for second in 8 16 25 34 45 58 76; do
+            echo "REMOTE_SAMPLE second=$second"
+            timeout 35 ffmpeg -hide_banner -loglevel error -nostdin \
+              -rw_timeout 18000000 -ss "$second" -i "$SOURCE" \
+              -frames:v 1 -vf "scale=480:-2" \
+              -q:v 4 "output/launch-thumbnails/$(printf '%02d' "$second").jpg"
+            test -s "output/launch-thumbnails/$(printf '%02d' "$second").jpg"
+          done
+          echo "Seven remotely sought video frames passed; raw trailer NOT retained."
+      - name: Create image-only source scene review contact sheet
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageDraw, ImageFont
+          files=sorted(Path("output/launch-thumbnails").glob("*.jpg"))
+          assert len(files)==7
+          w,h=480,306
+          sheet=Image.new("RGB",(2*w,4*h),(8,16,25))
+          draw=ImageDraw.Draw(sheet)
+          font=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",19)
+          for idx,p in enumerate(files):
+            img=Image.open(p).convert("RGB")
+            img.thumbnail((w,h-32))
+            x=(idx%2)*w; y=(idx//2)*h
+            sheet.paste(img,(x+(w-img.width)//2,y))
+            draw.text((x+8,y+h-28),f"LAUNCH TRAILER AT {p.stem}s",fill=(128,245,222),font=font)
+          sheet.save("output/LAUNCH-REMOTE-SAMPLE-contact.jpg",quality=90)
+          print("Created review contact sheet; no 782MB archive.")
+          PY
+      - name: Retain only small internal-only scene selection sheet
+        uses: actions/upload-artifact@v4
+        with:
+          name: KLYPTIQ-LAUNCH-TRAILER-SCENE-SAMPLES-REVIEW-ONLY
+          path: output/LAUNCH-REMOTE-SAMPLE-contact.jpg
+          retention-days: 3
+          if-no-files-found: error
