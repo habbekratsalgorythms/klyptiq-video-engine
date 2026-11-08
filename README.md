@@ -69,7 +69,7 @@ Klyptiq's `--pop` mode now also accepts **local video clips** instead of only ph
 
 ### New footage-first Director Cut — explicitly NOT another photo slideshow
 
-Use `--director` with a per-scene `shots` storyboard. This **different** renderer requires two or more distinct cleared sources per scene, actual moving clips for at least one third of all shots, 0.5–2.1 second cuts, short active captions and synthesized original mini-impacts. It removes the persistent large title and dark caption cards. **It does not manufacture actual gameplay, download Rockstar videos, assert commercial reuse rights, or automatically post.** Existing `--pop` remains the stable photo/video renderer. See [Director Cut requirements and example](docs/DIRECTOR_CUT.md). The first production-quality clip cannot be considered approved until actual authorized footage is provided and the finished MP4 is watched and heard.
+Use `--director` with a per-scene `shots` storyboard. This **different** renderer requires two or more distinct cleared sources per scene, actual moving clips for at least two thirds of all shots, 0.5–2.1 second cuts, short active captions and synthesized original mini-impacts. It removes the persistent large title and dark caption cards. **It does not manufacture actual gameplay, download Rockstar videos, assert commercial reuse rights, or automatically post.** Existing `--pop` remains the stable photo/video renderer. See [Director Cut requirements and example](docs/DIRECTOR_CUT.md). The first production-quality clip cannot be considered approved until actual authorized footage is provided and the finished MP4 is watched and heard.
 
 ### Caption timing
 

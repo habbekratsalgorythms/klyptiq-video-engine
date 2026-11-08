@@ -27,7 +27,7 @@ class DirectorTests(unittest.TestCase):
                 {"caption":"FAST HOOK REAL MOTION","voiceover":"This footage is moving.",
                  "shots":[
                     {"asset_video":"v1.mp4","media_rights":"self_recorded","text":"REAL MOTION"},
-                    {"asset":"a.png","media_rights":"self_recorded","text":"FAST HOOK"}]},
+                    {"asset_video":"v2.mp4","media_rights":"self_recorded","text":"FAST HOOK"}]},
                 {"caption":"SECOND VISUAL DETAIL","voiceover":"Watch the second detail.",
                  "shots":[
                     {"asset_video":"v2.mp4","media_rights":"self_recorded","text":"NEW CAMERA"},
@@ -40,7 +40,7 @@ class DirectorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);self.media(root);p=self.brief(root)
             data=render.parse_brief(p)
-            self.assertEqual(director_cut.prepare(data,p)["moving_shots"],2)
+            self.assertEqual(director_cut.prepare(data,p)["moving_shots"],3)
             data["scenes"][0]["shots"][0].pop("media_rights")
             with self.assertRaisesRegex(ValueError,"media_rights"):
                 director_cut.prepare(data,p)
@@ -68,7 +68,7 @@ class DirectorTests(unittest.TestCase):
                                  320,568,27,quality="preview",director=True)
             self.assertEqual(result["shot_count"],4)
             self.assertEqual(result["cuts"],3)
-            self.assertEqual(result["moving_shots"],2)
+            self.assertEqual(result["moving_shots"],3)
             self.assertFalse(result["source_audio_used"])
             self.assertTrue(output.stat().st_size>15000)
             info=render.run(["ffprobe","-v","error","-show_entries",

@@ -66,8 +66,8 @@ def prepare(brief, brief_path):
             total += 1
         if len(distinct) < 2:
             raise ValueError("Director scenes require at least TWO different approved media sources")
-    if moving * 3 < total:
-        raise ValueError("Director mode requires real rights-cleared video for at least one third of shots; no slideshow fallback")
+    if moving * 3 < 2 * total:
+        raise ValueError("Director mode requires real rights-cleared video for at least two thirds of shots; no slideshow fallback")
     if len(roots) < 3:
         raise ValueError("Director mode needs visual variety: at least three distinct media sources")
     return {"shots": total, "moving_shots": moving, "media_sources": len(roots)}
