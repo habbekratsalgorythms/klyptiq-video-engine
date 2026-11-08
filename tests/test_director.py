@@ -60,9 +60,54 @@ class DirectorTests(unittest.TestCase):
             self.assertGreater(im.getpixel((160,450))[3],0)
             self.assertGreater(im.getpixel((50,566))[3],0)
 
+    def test_duo_rejects_uncleared_secondary_media(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);self.media(root);p=self.brief(root)
+            data=render.parse_brief(p)
+            pair=data["scenes"][0]["shots"][0]
+            pair["layout"]="stacked"
+            pair["secondary_asset_video"]="v2.mp4"
+            with self.assertRaisesRegex(ValueError,"second media rights"):
+                director_cut.prepare(data,p)
+            pair["secondary_media_rights"]="editorial_review_only"
+            with self.assertRaisesRegex(ValueError,"Unlicensed second video"):
+                director_cut.prepare(data,p)
+            data["distribution"]="internal_review"
+            self.assertEqual(director_cut.prepare(data,p)["media_sources"],3)
+
+    def test_duo_overlay_has_center_divider_and_clear_faces(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp)/"duo.png"
+            director_cut.overlay_file(p,320,568,"PICK ONE",.5,pair_label="OR")
+            im=Image.open(p).convert("RGBA")
+            self.assertGreater(im.getpixel((160,284))[3],0)
+            self.assertEqual(im.getpixel((160,190))[3],0)
+            self.assertGreater(im.getpixel((160,440))[3],0)
+
+    def test_v3_brief_is_noncommercial_and_has_real_comparison_layouts(self):
+        p=Path(__file__).resolve().parents[1]/"briefs/review/six-more-faces-story-v3.json"
+        data=json.loads(p.read_text())
+        self.assertEqual(data["distribution"],"internal_review")
+        self.assertEqual(data["script"]," ".join(s["voiceover"] for s in data["scenes"]))
+        shots=[x for scene in data["scenes"] for x in scene["shots"]]
+        self.assertGreaterEqual(len(shots),18)
+        duos=[x for x in shots if x.get("layout")=="stacked"]
+        self.assertGreaterEqual(len(duos),4)
+        self.assertTrue(all(x["secondary_media_rights"]=="editorial_review_only" for x in duos))
+        self.assertTrue(all(x["asset_video"].endswith(".mp4") for x in shots))
+        for shot in shots:
+            if "Cover_Art" in shot["asset_video"]:
+                self.assertGreaterEqual(shot.get("start",0),7.0)
+
     def test_four_edited_shots_with_original_sfx(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);self.media(root);p=self.brief(root)
+            # First synthetic shot uses two simultaneous, independently sourced clips.
+            raw=json.loads(p.read_text())
+            first=raw["scenes"][0]["shots"][0]
+            first.update({"layout":"stacked","secondary_asset_video":"v2.mp4",
+                          "secondary_media_rights":"self_recorded","pair_label":"AND"})
+            p.write_text(json.dumps(raw))
             output=root/"director.mp4"
             result=render.render(p,output,"espeak",None,"en-us",
                                  320,568,27,quality="preview",director=True)
@@ -75,6 +120,14 @@ class DirectorTests(unittest.TestCase):
                              "stream=codec_name,codec_type","-of","csv=p=0",output]).stdout
             self.assertIn("h264",info)
             self.assertIn("aac",info)
+            # First shot is visibly top+bottom moving sources, not the old single panel.
+            import io,subprocess
+            captured=subprocess.run(["ffmpeg","-v","error","-ss",".35","-i",str(output),
+                "-frames:v","1","-f","image2pipe","-vcodec","png","pipe:1"],
+                check=True,capture_output=True).stdout
+            image=Image.open(io.BytesIO(captured)).convert("RGB")
+            self.assertEqual(image.size,(320,568))
+            self.assertNotEqual(image.getpixel((160,125)),image.getpixel((160,408)))
 
     def test_editorial_sources_must_stay_internal(self):
         with tempfile.TemporaryDirectory() as tmp:
