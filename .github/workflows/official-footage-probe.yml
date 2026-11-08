@@ -1,0 +1,33 @@
+name: Klyptiq official-footage HEAD probe (no downloads)
+on:
+  push:
+    branches: [feature/real-footage-review-20261108]
+    paths: ['.github/workflows/official-footage-probe.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Check only official Rockstar files for review feasibility
+        shell: bash
+        run: |
+          set -uo pipefail
+          urls=(
+          'https://www.rockstargames.com/VI/_next/static/media/2160.5ea019fca6bf0a4712cbd774dde4fb71.mp4'
+          'https://www.rockstargames.com/VI/_next/static/media/2160.cdb83cadadbcc9d9e7b776b1faa8272f.mp4'
+          'https://www.rockstargames.com/VI/_next/static/media/2160.5a0012f6ebd81da2b1e21add31554e36.mp4'
+          'https://www.rockstargames.com/VI/_next/static/media/2160.9bf4e8d6192a59c7ff13a7362dfae577.mp4'
+          'https://www.rockstargames.com/VI/_next/static/media/2160.06.kcaed--eoc.mp4'
+          'https://media.rockstargames.com/VI/downloads/videos/GTAVI_Videos.zip'
+          )
+          for url in "${urls[@]}"; do
+            echo "RESOURCE ${url##*/}"
+            curl -IL --retry 1 --max-time 18 --silent --show-error --output /dev/null \
+                 --write-out 'HTTP=%{http_code} BYTES=%{size_download} TYPE=%{content_type} REMOTE=%{remote_ip}\n' \
+                 "$url" || true
+            curl -sIL --max-time 12 "$url" | tr -d '\r' | grep -iE '^(content-length|content-type|location):' | tail -5 || true
+          done
+          echo "No material downloaded, no publishing, no paid API."
