@@ -22,6 +22,8 @@
 | Zelf gefilmde hardwaredemo zonder beschermde gamebeelden/muziek | In principe toegestaan bij eigen rechten | Sterke eerste kandidaat voor sponsordeals en affiliate, met duidelijke reclamevermelding |
 | AI-avatar, origineel script en eigen synth-muziek | Licenties en rechten controleren | Alleen met legale model-/stem- en commerciële contentrechten; label realistische AI waar vereist |
 
+Documenteer de verplichte individuele Nederlandse citaatrechttoets uit [PER_PUBLICATION_RIGHTS.md](PER_PUBLICATION_RIGHTS.md). De [controletool](../scripts/publication_rights_preflight.py) is uitsluitend een documentatie-/blokkademechanisme en nooit een juridisch publicatiebewijs.
+
 ## Release gate die altijd handmatig moet blijven
 
 Voor **elk** commerciëel videobestand:
