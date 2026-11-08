@@ -86,6 +86,28 @@ class DirectorTests(unittest.TestCase):
             data["distribution"]="internal_review"
             self.assertEqual(director_cut.prepare(data,p)["moving_shots"],3)
 
+    def test_no_looping_short_character_clips_or_bad_start_offsets(self):
+        self.assertAlmostEqual(director_cut.stretch_for_shot(1.0,0,1.3),1.3)
+        self.assertEqual(director_cut.stretch_for_shot(1.5,0,.9),1.0)
+        with self.assertRaisesRegex(ValueError,"too much slow-motion"):
+            director_cut.stretch_for_shot(1.0,0,2.2)
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);self.media(root);p=self.brief(root)
+            data=render.parse_brief(p)
+            data["scenes"][0]["shots"][0]["start"]=1.95
+            with self.assertRaisesRegex(ValueError,"start offset"):
+                director_cut.prepare(data,p)
+
+    def test_real_source_preview_never_starts_on_rating_card(self):
+        p=Path(__file__).resolve().parents[1]/"briefs/review/eight-faces-director.json"
+        data=json.loads(p.read_text())
+        for scene in data["scenes"]:
+            for shot in scene["shots"]:
+                if "Cover_Art" in shot.get("asset_video",""):
+                    self.assertGreaterEqual(shot.get("start",0),7.0)
+                if shot.get("text") in ("LUCIA CAMINOS","JASON DUVAL","TEAM LUCIA?","TEAM JASON?"):
+                    self.assertEqual(shot.get("framing"),"center")
+
     def test_original_music_is_audible_and_is_not_external_audio(self):
         import wave
         with tempfile.TemporaryDirectory() as tmp:
