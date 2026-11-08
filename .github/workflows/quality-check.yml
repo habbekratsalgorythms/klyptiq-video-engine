@@ -10,6 +10,7 @@ on:
       - feature/director-cuts-20261108
       - feature/director-footage-threshold-20261108
       - feature/real-footage-review-20261108
+      - feature/per-publication-quotation-audit-20261108
   workflow_dispatch:
 permissions:
   contents: read
