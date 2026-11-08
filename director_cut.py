@@ -50,6 +50,11 @@ def prepare(brief, brief_path):
                              "-of","csv=p=0",src]).stdout.strip()
                 if probe != "video":
                     raise ValueError("Director footage has no video stream")
+                source_length=float(run(["ffprobe","-v","error","-show_entries",
+                              "format=duration","-of","default=noprint_wrappers=1:nokey=1",src]).stdout.strip())
+                if not math.isfinite(source_length) or source_length < .6:
+                    raise ValueError("Director source video is too short")
+                shot["_video_seconds"]=source_length
                 moving += 1
             else:
                 try:
@@ -59,6 +64,8 @@ def prepare(brief, brief_path):
             start = shot.get("start", 0)
             if isinstance(start, bool) or not isinstance(start, (float, int)) or not math.isfinite(start) or not 0 <= start <= 120:
                 raise ValueError("Director start must be 0-120 finite seconds")
+            if is_video and start >= shot["_video_seconds"] - .25:
+                raise ValueError("Director start offset leaves too little actual video")
             if shot.get("text") and (not isinstance(shot["text"], str) or len(shot["text"]) > 50):
                 raise ValueError("Shot text must contain 50 characters or fewer")
             shot["_source"] = str(src)
@@ -193,6 +200,17 @@ def original_music_bed(path, total, bpm=142):
         f.writeframes(sample.tobytes())
 
 
+def stretch_for_shot(source_length, start, target):
+    """Slow short clips at most 1.8x; NEVER wrap to frame 0 or fake motion by looping."""
+    available=source_length-start
+    if available < .30:
+        raise ValueError("No meaningful source footage remains after start offset")
+    factor=max(1.0,target/available)
+    if factor > 1.8:
+        raise ValueError("Director shot requires too much slow-motion: add footage or more cuts")
+    return factor
+
+
 def render_director(work, brief, scenes, durations, w, h, crf, wav, total_length, target):
     """Cut every 0.5-2.1 s, mix original micro-impacts under the voice."""
     clips = []
@@ -215,14 +233,20 @@ def render_director(work, brief, scenes, durations, w, h, crf, wav, total_length
             src = shot["_source"]
             inputs = []
             if shot["_moving"]:
-                # Original clip audio intentionally dropped: no game music or voices.
-                inputs = ["-stream_loop","-1","-ss",str(shot.get("start",0)),"-i",src]
+                # Original clip audio never copied. Short 1-second clips slow smoothly
+                # rather than visibly jumping back to the first frame.
+                start=shot.get("start",0)
+                stretch=stretch_for_shot(shot["_video_seconds"],start,seconds_this)
+                inputs = ["-ss",str(start),"-i",src]
                 framing = shot.get("framing","center")
                 if framing not in ("left","center","right"):
                     raise ValueError("Director framing must be left, center or right")
                 x = {"left":"0","center":"(iw-ow)/2","right":"iw-ow"}[framing]
                 picture = (f"[0:v]fps=30,scale={w}:{h}:force_original_aspect_ratio=increase,"
-                           f"crop={w}:{h}:{x}:(ih-oh)/2,setsar=1[media];")
+                           f"crop={w}:{h}:{x}:(ih-oh)/2,setsar=1,"
+                           f"setpts={stretch:.5f}*(PTS-STARTPTS),fps=30,"
+                           f"tpad=stop_mode=clone:stop_duration=.15,"
+                           f"trim=duration={seconds_this:.5f},setpts=PTS-STARTPTS[media];")
             else:
                 inputs = ["-loop","1","-framerate","30","-i",src]
                 picture = (f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,"
