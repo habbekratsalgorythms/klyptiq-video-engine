@@ -1,0 +1,109 @@
+name: Klyptiq 1080p REAL-footage Director review (NOT publication)
+on:
+  push:
+    branches: [feature/real-footage-review-20261108]
+    paths:
+      - '.github/workflows/rockstar-director-review.yml'
+      - 'briefs/review/**'
+      - 'director_cut.py'
+      - 'render.py'
+      - 'scripts/prepare_official_review_clips.py'
+      - 'scripts/evaluate_director_review.py'
+      - 'tests/test_director.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  editorial-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      ARCHIVE_URL: https://media.rockstargames.com/VI/downloads/videos/GTAVI_Videos.zip
+      VIDEO_OUTPUT: output/KLYPTIQ-Six-More-Faces-Director-V3-1080p-REVIEW.mp4
+    steps:
+      - name: Use repository engine only — no Descript, no social credentials, no paid APIs
+        uses: actions/checkout@v4
+      - name: Use Python 3.12 to select type-aware kokoro-onnx 0.6
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install free offline FFmpeg, Python and media prerequisites
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-dejavu-core espeak curl
+          python -m venv .venv
+          . .venv/bin/activate
+          python -m pip install -r requirements.txt
+      - name: Verify editorial storyboard and prevent any automatic distribution
+        run: |
+          . .venv/bin/activate
+          python - <<'PY'
+          import json
+          b=json.load(open('briefs/review/six-more-faces-story-v3.json'))
+          shots=[shot for scene in b["scenes"] for shot in scene["shots"]]
+          assert b["distribution"]=="internal_review"
+          assert b["license_status"]=="commercial_rights_not_established"
+          assert len(shots)>=16
+          assert all(shot["media_rights"]=="editorial_review_only" for shot in shots)
+          assert all("asset_video" in shot for shot in shots)
+          assert b["source_url"]=="https://www.rockstargames.com/VI/media/videos"
+          print("EDITORIAL SAFETY OK:",len(shots),"planned footage shots; release blocked")
+          PY
+          python -m unittest discover -s tests -v
+      - name: Download hash-pinned Rockstar archive for this noncommercial review
+        run: |
+          curl --fail --location --retry 3 --silent --show-error --max-time 200 \
+            "$ARCHIVE_URL" -o "$RUNNER_TEMP/official-clips.zip"
+          echo '017b806729ae09d54180e9c83c31ef201ff4288751186f20d11ea2c513de7698  '"$RUNNER_TEMP/official-clips.zip" | sha256sum --check
+          . .venv/bin/activate
+          python scripts/prepare_official_review_clips.py \
+            --archive "$RUNNER_TEMP/official-clips.zip" \
+            --output assets/rockstar_review \
+            --internal-review-only
+      - name: Install locally executed Kokoro narrator with pinned model SHA
+        run: |
+          bash scripts/setup_kokoro.sh
+          . .venv/bin/activate
+          python - <<'PY'
+          from importlib.metadata import version
+          from packaging.version import Version
+          installed=version("kokoro-onnx")
+          print("Kokoro ONNX version:",installed)
+          assert Version(installed)>=Version("0.6.0"), "Old Kokoro mis-sends int32 speed into float-only August 2026 model"
+          PY
+      - name: Render actual 19-shot character comparison vertical review in own engine
+        run: |
+          . .venv/bin/activate
+          python render.py briefs/review/six-more-faces-story-v3.json \
+            --tts kokoro --model models/kokoro-v1.0.fp16.onnx \
+            --voice am_puck --pace 1.15 --director --quality production \
+            --width 1080 --height 1920 --crf 22 \
+            -o "$VIDEO_OUTPUT" | tee "$RUNNER_TEMP/director-result.json"
+          test -s "$VIDEO_OUTPUT"
+          mkdir -p output
+          cp "$RUNNER_TEMP/director-result.json" output/director-result.json
+      - name: Validate picture, length, soundtrack and create review contact sheet
+        run: |
+          . .venv/bin/activate
+          python scripts/evaluate_director_review.py "$VIDEO_OUTPUT" \
+            --summary output/review-quality.json \
+            --contact-sheet output/REVIEW-contact-sheet.jpg
+          printf '%s\n' \
+            'KLYPTIQ SIX MORE FACES V3 — PRIVATE EDITORIAL REVIEW' \
+            'Not published or scheduled. Third-party Rockstar footage is NOT cleared for monetization.' \
+            'Do not upload to social media or include in a paid product without required rights review.' \
+            'Generated with local open-source FFmpeg/Python/Kokoro and original synth score.' \
+            > output/READ_BEFORE_SHARING.txt
+      - name: Keep only review output temporarily; never include raw Rockstar archive
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: KLYPTIQ-SIX-MORE-FACES-V3-REVIEW-ONLY
+          path: |
+            output/KLYPTIQ-Six-More-Faces-Director-V3-1080p-REVIEW.mp4
+            output/REVIEW-contact-sheet.jpg
+            output/review-quality.json
+            output/director-result.json
+            output/READ_BEFORE_SHARING.txt
+          if-no-files-found: error
+          retention-days: 3

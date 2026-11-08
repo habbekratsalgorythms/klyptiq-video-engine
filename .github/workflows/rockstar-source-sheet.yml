@@ -1,0 +1,64 @@
+name: Source clip composition contact-sheet QA (internal only)
+on:
+  push:
+    branches: [feature/real-footage-review-20261108]
+    paths: ['.github/workflows/rockstar-source-sheet.yml']
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  frames:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install free FFmpeg and Pillow
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          python -m pip install "Pillow>=10,<13"
+      - name: Fetch and check official archival clips for inspect only
+        run: |
+          curl -fLsS --retry 3 --max-time 180 \
+            https://media.rockstargames.com/VI/downloads/videos/GTAVI_Videos.zip \
+            -o "$RUNNER_TEMP/clips.zip"
+          python scripts/prepare_official_review_clips.py \
+            --archive "$RUNNER_TEMP/clips.zip" --output assets/rockstar_review \
+            --internal-review-only
+      - name: Sample official intro after ESRB cards and character framing
+        run: |
+          python - <<'PY'
+          import subprocess,io
+          from pathlib import Path
+          from PIL import Image,ImageDraw,ImageFont
+          root=Path("assets/rockstar_review")
+          cover=root/"GTAVI_Official_Cover_Art_Landscape.mp4"
+          names=["Jason_Duval_Video_Clip.mp4","Lucia_Caminos_Video_Clip.mp4"]
+          samples=[(cover,t,f"COVER {t:04.1f}s") for t in [0.1,1.4,2.5,3.5,4.5,6.0,8.0,11.0,15.0,20.0,26.0,31.0]]
+          for name in names:
+             samples.append((root/name,.45,name.split("_")[0]))
+          w,h=300,200
+          sheet=Image.new("RGB",(4*w,4*(h+28)),(15,20,30))
+          d=ImageDraw.Draw(sheet)
+          font=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",15)
+          for i,(p,t,label) in enumerate(samples):
+            x,y=(i%4)*w,(i//4)*(h+28)
+            r=subprocess.run(["ffmpeg","-hide_banner","-loglevel","error",
+                 "-ss",str(t),"-i",str(p),"-frames:v","1",
+                 "-vf",f"scale={w}:{h}:force_original_aspect_ratio=decrease",
+                 "-f","image2pipe","-vcodec","mjpeg","pipe:1"],
+                 stdout=subprocess.PIPE,check=True)
+            im=Image.open(io.BytesIO(r.stdout)).convert("RGB")
+            sheet.paste(im,(x+(w-im.width)//2,y+(h-im.height)//2))
+            d.text((x+8,y+h+3),label,font=font,fill=(185,246,240))
+          Path("output").mkdir(exist_ok=True)
+          sheet.save("output/rockstar-source-timestamps.jpg",quality=90)
+          PY
+      - name: Upload source thumbnail sheet, NEVER original footage
+        uses: actions/upload-artifact@v4
+        with:
+          name: KLYPTIQ-SOURCE-TIMESTAMP-SHEET-REVIEW
+          path: output/rockstar-source-timestamps.jpg
+          retention-days: 3
+          if-no-files-found: error

@@ -1,0 +1,153 @@
+{
+  "title": "GTA VI: EIGHT FACES. ONE STATE.",
+  "label": "OFFICIAL ROCKSTAR CHARACTER CLIPS",
+  "style": "analysis",
+  "content_status": "official_character_names_only",
+  "verified_as_of": "2026-11-08",
+  "source_url": "https://www.rockstargames.com/VI/media/videos",
+  "distribution": "internal_review",
+  "license_status": "commercial_rights_not_established",
+  "editorial_note": "Noncommercial in-house demo only; do not upload or monetize pending rights assessment. All imported audio discarded.",
+  "script": "Eight faces. One state. And nobody looks innocent. Jason and Lucia are at the center of Rockstar's story. But Leonida is packed with more characters. Cal Hampton. Boobie Ike. Dre Quan Priest. Real Dimez. Raul Bautista. Brian Heder. Who are you watching first? Drop one name in the comments.",
+  "scenes": [
+    {
+      "caption": "EIGHT FACES. ONE STATE.",
+      "voiceover": "Eight faces. One state. And nobody looks innocent.",
+      "pace": 1.16,
+      "shots": [
+        {
+          "asset_video": "../../assets/rockstar_review/GTAVI_Official_Cover_Art_Landscape.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "EIGHT FACES",
+          "start": 8
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Lucia_Caminos_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "ONE STATE"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Jason_Duval_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "NO ONE"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/GTAVI_Official_Cover_Art_Landscape.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "LOOKS INNOCENT",
+          "start": 18
+        }
+      ]
+    },
+    {
+      "caption": "JASON. LUCIA. LEONIDA.",
+      "voiceover": "Jason and Lucia are at the center of Rockstar's story. But Leonida is packed with more characters.",
+      "pace": 1.16,
+      "shots": [
+        {
+          "asset_video": "../../assets/rockstar_review/Jason_Duval_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "JASON DUVAL"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Lucia_Caminos_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "LUCIA CAMINOS"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Raul_Bautista_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "RAUL BAUTISTA"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Boobie_Ike_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "BOOBIE IKE"
+        }
+      ]
+    },
+    {
+      "caption": "THE OTHER FACES OF LEONIDA",
+      "voiceover": "Cal Hampton. Boobie Ike. Dre Quan Priest. Real Dimez. Raul Bautista. Brian Heder.",
+      "pace": 1.2,
+      "shots": [
+        {
+          "asset_video": "../../assets/rockstar_review/Cal_Hampton_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "CAL HAMPTON"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Boobie_Ike_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "BOOBIE IKE"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/DreQuan_Priest_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "DRE'QUAN PRIEST"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Real_Dimez_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "REAL DIMEZ"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Raul_Bautista_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "RAUL BAUTISTA"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Brian_Heder_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "BRIAN HEDER"
+        }
+      ]
+    },
+    {
+      "caption": "PICK YOUR FAVORITE",
+      "voiceover": "Who are you watching first? Drop one name in the comments.",
+      "pace": 1.14,
+      "shots": [
+        {
+          "asset_video": "../../assets/rockstar_review/Lucia_Caminos_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "TEAM LUCIA?"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Jason_Duval_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "TEAM JASON?"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Real_Dimez_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "SOMEONE ELSE?"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/GTAVI_Official_Cover_Art_Landscape.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "YOUR PICK ↓",
+          "start": 19
+        }
+      ]
+    }
+  ]
+}

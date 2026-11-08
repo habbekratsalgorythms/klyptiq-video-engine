@@ -1,0 +1,189 @@
+{
+  "title": "GTA VI: SIX MORE FACES",
+  "label": "KLYPTIQ CHARACTER CUT",
+  "style": "analysis",
+  "content_status": "official_character_names_only",
+  "verified_as_of": "2026-11-08",
+  "source_url": "https://www.rockstargames.com/VI/media/videos",
+  "distribution": "internal_review",
+  "license_status": "commercial_rights_not_established",
+  "editorial_note": "Original internally reviewed transformative commentary assembled from official moving character video; NO external publishing or commercialization until license check.",
+  "script": "Everyone knows Jason and Lucia. But these six other faces? Don't sleep on them. Cal. Boobie. Dre Quan. Real Dimez. Rockstar made this cast impossible to ignore. Then there's Raul and Brian. Two more faces with completely different energy. So who's your wildcard? Jason, Lucia, or someone else? Drop one name below.",
+  "scenes": [
+    {
+      "caption": "THIS CAST IS BIGGER THAN TWO",
+      "voiceover": "Everyone knows Jason and Lucia. But these six other faces? Don't sleep on them.",
+      "pace": 1.18,
+      "shots": [
+        {
+          "asset_video": "../../assets/rockstar_review/Jason_Duval_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "NOT JUST TWO",
+          "layout": "stacked",
+          "secondary_asset_video": "../../assets/rockstar_review/Lucia_Caminos_Video_Clip.mp4",
+          "secondary_media_rights": "editorial_review_only",
+          "secondary_framing": "center",
+          "pair_label": "AND"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/GTAVI_Official_Cover_Art_Landscape.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "LOOK CLOSER",
+          "start": 8
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Cal_Hampton_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "SIX MORE FACES"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/DreQuan_Priest_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "DID YOU MISS THEM?"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Real_Dimez_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "WATCH THIS"
+        }
+      ]
+    },
+    {
+      "caption": "THE CAST HAS SIX MORE FACES",
+      "voiceover": "Cal. Boobie. Dre Quan. Real Dimez. Rockstar made this cast impossible to ignore.",
+      "pace": 1.19,
+      "shots": [
+        {
+          "asset_video": "../../assets/rockstar_review/Cal_Hampton_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "CAL + BOOBIE",
+          "layout": "stacked",
+          "secondary_asset_video": "../../assets/rockstar_review/Boobie_Ike_Video_Clip.mp4",
+          "secondary_media_rights": "editorial_review_only",
+          "secondary_framing": "center",
+          "pair_label": "AND"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Cal_Hampton_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "CAL HAMPTON"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Boobie_Ike_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "BOOBIE IKE"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/DreQuan_Priest_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "DRE'QUAN + REAL DIMEZ",
+          "layout": "stacked",
+          "secondary_asset_video": "../../assets/rockstar_review/Real_Dimez_Video_Clip.mp4",
+          "secondary_media_rights": "editorial_review_only",
+          "secondary_framing": "center",
+          "pair_label": "AND"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Real_Dimez_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "REAL DIMEZ"
+        }
+      ]
+    },
+    {
+      "caption": "TWO MORE CHARACTERS",
+      "voiceover": "Then there's Raul and Brian. Two more faces with completely different energy.",
+      "pace": 1.14,
+      "shots": [
+        {
+          "asset_video": "../../assets/rockstar_review/Raul_Bautista_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "RAUL + BRIAN",
+          "layout": "stacked",
+          "secondary_asset_video": "../../assets/rockstar_review/Brian_Heder_Video_Clip.mp4",
+          "secondary_media_rights": "editorial_review_only",
+          "secondary_framing": "center",
+          "pair_label": "AND"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Raul_Bautista_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "RAUL BAUTISTA"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Brian_Heder_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "BRIAN HEDER"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/GTAVI_Official_Cover_Art_Landscape.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "ONE LEONIDA",
+          "start": 18
+        }
+      ]
+    },
+    {
+      "caption": "WHO IS YOUR WILDCARD?",
+      "voiceover": "So who's your wildcard? Jason, Lucia, or someone else? Drop one name below.",
+      "pace": 1.18,
+      "shots": [
+        {
+          "asset_video": "../../assets/rockstar_review/Jason_Duval_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "JASON OR LUCIA?",
+          "layout": "stacked",
+          "secondary_asset_video": "../../assets/rockstar_review/Lucia_Caminos_Video_Clip.mp4",
+          "secondary_media_rights": "editorial_review_only",
+          "secondary_framing": "center",
+          "pair_label": "OR"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/DreQuan_Priest_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "OR DRE'QUAN?"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Real_Dimez_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "OR REAL DIMEZ?"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/GTAVI_Official_Cover_Art_Landscape.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "PICK YOUR FAVORITE",
+          "start": 19
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Raul_Bautista_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "framing": "center",
+          "text": "YOUR WILDCARD?",
+          "layout": "stacked",
+          "secondary_asset_video": "../../assets/rockstar_review/Boobie_Ike_Video_Clip.mp4",
+          "secondary_media_rights": "editorial_review_only",
+          "secondary_framing": "center",
+          "pair_label": "OR"
+        }
+      ]
+    }
+  ]
+}
