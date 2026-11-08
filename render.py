@@ -315,13 +315,19 @@ def build_narration(work,brief,scenes,engine,model,voice,pace=1.0):
     durations[-1]+=audio_length-sum(durations)+0.6
     return wav,durations,audio_length,audio_length+0.6
 
-def render(brief_path,out,engine,model,voice,width,height,crf,quality="preview",motion=False,pace=1.0,pop=False):
+def render(brief_path,out,engine,model,voice,width,height,crf,quality="preview",motion=False,pace=1.0,pop=False,director=False):
     for name in ("ffmpeg","ffprobe",engine if engine!="kokoro" else "ffmpeg"):
         if not shutil.which(name): raise RuntimeError("Missing required executable: "+name)
     if quality=="production" and (engine not in ("piper","kokoro") or width<1080 or height<1920):
         raise ValueError("Production needs a neural Piper/Kokoro voice and at least 1080x1920")
     brief=parse_brief(brief_path)
-    if any(scene.get("_video") for scene in brief["scenes"]) and not pop:
+    director_meta=None
+    if director:
+        if pop or motion:
+            raise ValueError("Director is a separate editing mode; omit --pop and --motion")
+        from director_cut import prepare
+        director_meta=prepare(brief,brief_path)
+    if any(scene.get("_video") for scene in brief["scenes"]) and not (pop or director):
         raise ValueError("Use --pop to render scene asset_video clips; static modes cannot silently ignore video")
     out=Path(out).resolve();out.parent.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="klyptiq-") as tmp:
@@ -330,7 +336,10 @@ def render(brief_path,out,engine,model,voice,width,height,crf,quality="preview",
         wav,durations,audio_length,total_length=build_narration(work,brief,scenes,engine,model,voice,pace)
         if not 3<=audio_length<=180: raise ValueError("Invalid audio duration")
         target=work/"video.mp4"
-        if pop:
+        if director:
+            from director_cut import render_director
+            director_meta.update(render_director(work,brief,scenes,durations,width,height,crf,wav,total_length,target))
+        elif pop:
             render_pop_video(work,brief,scenes,durations,width,height,crf,wav,total_length,target)
         elif motion:
             render_cinematic_video(work,brief,scenes,durations,width,height,crf,wav,total_length,target)
@@ -344,7 +353,7 @@ def render(brief_path,out,engine,model,voice,width,height,crf,quality="preview",
                 f.write(f"file '{slide}'\n")
             run(["ffmpeg","-hide_banner","-loglevel","error","-y","-safe","0","-f","concat","-i",manifest,"-i",wav,"-vf",f"fps=30,scale={width}:{height}:flags=lanczos,format=yuv420p","-af","loudnorm=I=-16:TP=-1.5:LRA=7","-c:v","libx264","-preset","veryfast","-crf",str(crf),"-c:a","aac","-b:a","192k","-movflags","+faststart","-t",str(total_length),target])
         # Quality gates: a blank-background video or missing/quiet voice must fail, not publish.
-        if not all(scene.get("_asset") or scene.get("_video") for scene in scenes):
+        if not director and not all(scene.get("_asset") or scene.get("_video") for scene in scenes):
             raise ValueError("No finished videos without an approved image for every scene")
         measure=run(["ffmpeg","-hide_banner","-i",target,"-vn","-af","volumedetect","-f","null","-"]).stderr
         import re
@@ -352,7 +361,9 @@ def render(brief_path,out,engine,model,voice,width,height,crf,quality="preview",
         if not found or float(found.group(1))<-33:
             raise RuntimeError(f"Voice too quiet or inaudible: mean={found.group(1) if found else 'missing'} dB; ffmpeg output={measure[-1300:]}")
         os.replace(target,out)
-        return {"video":str(out),"duration_seconds":round(length(out),2),"audio_seconds":round(audio_length,2),"resolution":f"{width}x{height}","scenes":len(scenes)}
+        result={"video":str(out),"duration_seconds":round(length(out),2),"audio_seconds":round(audio_length,2),"resolution":f"{width}x{height}","scenes":len(scenes)}
+        if director_meta: result.update(director_meta)
+        return result
 
 def main():
     p=argparse.ArgumentParser()
@@ -362,11 +373,12 @@ def main():
     p.add_argument("--width",type=int,default=1080);p.add_argument("--height",type=int,default=1920);p.add_argument("--crf",type=int,default=20)
     p.add_argument("--quality",choices=["preview","production"],default="preview")
     p.add_argument("--motion",action="store_true",help="Animate only source photographs; keep title and captions fixed")
-    p.add_argument("--pop",action="store_true",help="Preview punchy animated-caption Shorts style, never auto-publish")
+    p.add_argument("--pop",action="store_true",help="Legacy punchy animated-caption Shorts style")
+    p.add_argument("--director",action="store_true",help="Footage-first storyboard: 2-6 cleared shots per scene, actual gameplay/video, original SFX; review-only")
     a=p.parse_args()
     if a.width<320 or a.height<568 or a.width%2 or a.height%2: p.error("Resolution must be even and at least 320x568")
     if not 0.85<=a.pace<=1.30: p.error("Pace must be between 0.85 and 1.30")
-    try:print(json.dumps(render(a.brief,a.output,a.tts,a.model,a.voice,a.width,a.height,a.crf,a.quality,a.motion,a.pace,a.pop),indent=2))
+    try:print(json.dumps(render(a.brief,a.output,a.tts,a.model,a.voice,a.width,a.height,a.crf,a.quality,a.motion,a.pace,a.pop,a.director),indent=2))
     except Exception as e:print(f"ERROR: {type(e).__name__}: {e}",file=sys.stderr);sys.exit(1)
 
 if __name__=="__main__": main()

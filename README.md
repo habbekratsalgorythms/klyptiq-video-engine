@@ -67,6 +67,10 @@ For cheaper technical testing, use `--quality preview --width 360 --height 640`.
 
 Klyptiq's `--pop` mode now also accepts **local video clips** instead of only photographs, mixed in any order. Use only material you have the appropriate rights to distribute. The imported clip's original audio is deliberately not copied. See [VIDEO_INPUTS.md](docs/VIDEO_INPUTS.md) for setup and an example JSON scene with `asset_video` and mandatory `media_rights`. No new footage is generated or downloaded.
 
+### New footage-first Director Cut — explicitly NOT another photo slideshow
+
+Use `--director` with a per-scene `shots` storyboard. This **different** renderer requires two or more distinct cleared sources per scene, actual moving clips for at least one third of all shots, 0.5–2.1 second cuts, short active captions and synthesized original mini-impacts. It removes the persistent large title and dark caption cards. **It does not manufacture actual gameplay, download Rockstar videos, assert commercial reuse rights, or automatically post.** Existing `--pop` remains the stable photo/video renderer. See [Director Cut requirements and example](docs/DIRECTOR_CUT.md). The first production-quality clip cannot be considered approved until actual authorized footage is provided and the finished MP4 is watched and heard.
+
 ### Caption timing
 
 A scene can now specify `"voiceover":"One complete spoken sentence."` alongside `"caption":"Short screen phrase"`. If *all* scenes contain voiceover, the renderer synthesizes each spoken sentence separately, measures the real WAV duration, and aligns its image and caption to that duration. Old single-script briefs remain supported, but use approximate timing.
