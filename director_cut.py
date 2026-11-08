@@ -70,6 +70,41 @@ def prepare(brief, brief_path):
                 raise ValueError("Shot text must contain 50 characters or fewer")
             shot["_source"] = str(src)
             shot["_moving"] = is_video
+            layout=shot.get("layout","single")
+            if layout not in ("single","stacked"):
+                raise ValueError("Unknown director shot layout")
+            if layout == "stacked":
+                if not is_video:
+                    raise ValueError("Stacked director shot needs TWO actual video streams")
+                secondary=shot.get("secondary_asset_video")
+                rights=shot.get("secondary_media_rights")
+                if not isinstance(secondary,str) or not secondary:
+                    raise ValueError("Stacked shot missing second video")
+                if rights not in RIGHTS:
+                    raise ValueError("Stacked shot missing second media rights declaration")
+                if rights == "editorial_review_only" and brief.get("distribution") != "internal_review":
+                    raise ValueError("Unlicensed second video cannot be published")
+                other=(Path(brief_path).resolve().parent/secondary).resolve()
+                if other == src or not other.is_file() or other.suffix.lower() not in VIDEO_SUFFIXES:
+                    raise ValueError("Stacked shot needs a distinct, valid second video")
+                second_start=shot.get("secondary_start",0)
+                if isinstance(second_start,bool) or not isinstance(second_start,(int,float)) or not math.isfinite(second_start) or not 0 <= second_start <= 120:
+                    raise ValueError("Invalid stacked second video start")
+                secondary_probe=run(["ffprobe","-v","error","-select_streams","v:0",
+                              "-show_entries","stream=codec_type","-of","csv=p=0",other]).stdout.strip()
+                if secondary_probe!="video":
+                    raise ValueError("Stacked second source is not video")
+                secondary_len=float(run(["ffprobe","-v","error","-show_entries",
+                              "format=duration","-of","default=noprint_wrappers=1:nokey=1",other]).stdout.strip())
+                if not math.isfinite(secondary_len) or second_start >= secondary_len-.25:
+                    raise ValueError("Second stacked video has no valid duration or start")
+                if shot.get("pair_label","AND") not in ("AND","OR","MEET"):
+                    raise ValueError("Invalid stacked pair label")
+                shot["_secondary_source"]=str(other)
+                shot["_secondary_seconds"]=secondary_len
+                roots.add(str(other))
+            elif "secondary_asset_video" in shot or "secondary_media_rights" in shot:
+                raise ValueError("Second source without stacked layout")
             distinct.add(str(src))
             roots.add(str(src))
             total += 1
@@ -106,7 +141,7 @@ def text_for_shot(scene, idx):
     chunk = words[start:stop]
     return " ".join(chunk or words[-min(3,len(words)):])
 
-def overlay_file(path, w, h, caption, progress, first=False):
+def overlay_file(path, w, h, caption, progress, first=False, pair_label=None):
     """Real media remains edge-to-edge; no giant fixed slide heading or frame."""
     im = Image.new("RGBA", (w,h), (0,0,0,0))
     d = ImageDraw.Draw(im)
@@ -129,6 +164,20 @@ def overlay_file(path, w, h, caption, progress, first=False):
         highlight = (250,228,91,255) if first else (255,255,255,255)
         d.text((x,yy),ln,font=f,fill=highlight,stroke_width=max(2,int(w*.004)),stroke_fill=(4,9,18,255))
         yy += int(f.size*1.18)
+    # Optional honest two-subject composition: no side-by-side fake interactions.
+    if pair_label:
+        middle=h//2
+        d.rectangle((0,middle-max(2,h//400),w,middle+max(2,h//400)),fill=(86,238,222,240))
+        tag=face(max(12,int(w*.035)))
+        bubble_w=int(w*.18); bubble_h=int(h*.044)
+        d.rounded_rectangle((w//2-bubble_w//2,middle-bubble_h//2,
+                             w//2+bubble_w//2,middle+bubble_h//2),
+                            radius=max(6,int(w*.012)),fill=(5,18,33,249),
+                            outline=(93,245,228,255),width=max(2,int(w*.003)))
+        bounds=d.textbbox((0,0),pair_label,font=tag)
+        d.text(((w-(bounds[2]-bounds[0]))//2,
+               middle-(bounds[3]-bounds[1])//2-3),pair_label,font=tag,
+               fill=(254,231,104,255))
     # Thin progress line makes shot changes visible without huge numbering cards.
     d.rectangle((0,h-int(h*.008),int(w*progress),h),fill=(100,245,228,245))
     im.save(path)
@@ -211,6 +260,17 @@ def stretch_for_shot(source_length, start, target):
     return factor
 
 
+def video_panel_graph(index,label,width,height,seconds,stretch,framing="center"):
+    if framing not in ("left","center","right"):
+        raise ValueError("Director framing must be left, center or right")
+    x={"left":"0","center":"(iw-ow)/2","right":"iw-ow"}[framing]
+    return (f"[{index}:v]fps=30,scale={width}:{height}:force_original_aspect_ratio=increase,"
+            f"crop={width}:{height}:{x}:(ih-oh)/2,setsar=1,"
+            f"setpts={stretch:.5f}*(PTS-STARTPTS),fps=30,"
+            f"tpad=stop_mode=clone:stop_duration=0.15,"
+            f"trim=duration={seconds:.5f},setpts=PTS-STARTPTS[{label}];")
+
+
 def render_director(work, brief, scenes, durations, w, h, crf, wav, total_length, target):
     """Cut every 0.5-2.1 s, mix original micro-impacts under the voice."""
     clips = []
@@ -229,31 +289,35 @@ def render_director(work, brief, scenes, durations, w, h, crf, wav, total_length
                 cut_positions.append(at)
             png = work / f"director_overlay_{shot_n:03}.png"
             clip = work / f"director_clip_{shot_n:03}.mp4"
-            overlay_file(png,w,h,text_for_shot(scene,j),(shot_n+1)/total_shots, first=shot_n==0)
+            overlay_file(png,w,h,text_for_shot(scene,j),(shot_n+1)/total_shots,
+                         first=shot_n==0,
+                         pair_label=shot.get("pair_label","AND") if shot.get("layout")=="stacked" else None)
             src = shot["_source"]
             inputs = []
+            overlay_index=1
             if shot["_moving"]:
-                # Original clip audio never copied. Short 1-second clips slow smoothly
-                # rather than visibly jumping back to the first frame.
                 start=shot.get("start",0)
                 stretch=stretch_for_shot(shot["_video_seconds"],start,seconds_this)
                 inputs = ["-ss",str(start),"-i",src]
-                framing = shot.get("framing","center")
-                if framing not in ("left","center","right"):
-                    raise ValueError("Director framing must be left, center or right")
-                x = {"left":"0","center":"(iw-ow)/2","right":"iw-ow"}[framing]
-                picture = (f"[0:v]fps=30,scale={w}:{h}:force_original_aspect_ratio=increase,"
-                           f"crop={w}:{h}:{x}:(ih-oh)/2,setsar=1,"
-                           f"setpts={stretch:.5f}*(PTS-STARTPTS),fps=30,"
-                           f"tpad=stop_mode=clone:stop_duration=0.15,"
-                           f"trim=duration={seconds_this:.5f},setpts=PTS-STARTPTS[media];")
+                if shot.get("layout") == "stacked":
+                    second_start=shot.get("secondary_start",0)
+                    secondary_stretch=stretch_for_shot(
+                        shot["_secondary_seconds"],second_start,seconds_this)
+                    inputs+=["-ss",str(second_start),"-i",shot["_secondary_source"]]
+                    picture=(video_panel_graph(0,"top",w,h//2,seconds_this,stretch,shot.get("framing","center"))
+                             +video_panel_graph(1,"bottom",w,h//2,seconds_this,secondary_stretch,
+                                                shot.get("secondary_framing","center"))
+                             +"[top][bottom]vstack=inputs=2[media];")
+                    overlay_index=2
+                else:
+                    picture=video_panel_graph(0,"media",w,h,seconds_this,stretch,shot.get("framing","center"))
             else:
                 inputs = ["-loop","1","-framerate","30","-i",src]
                 picture = (f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,"
                            f"zoompan=z='min(1.14,zoom+0.002)':"
                            f"x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':"
                            f"d=1:s={w}x{h}:fps=30,setsar=1[media];")
-            graph = picture + "[media][1:v]overlay=0:0:shortest=1,format=yuv420p[v]"
+            graph = picture + f"[media][{overlay_index}:v]overlay=0:0:shortest=1,format=yuv420p[v]"
             run(["ffmpeg","-hide_banner","-loglevel","error","-y",*inputs,
                  "-loop","1","-framerate","30","-i",png,
                  "-filter_complex",graph,"-map","[v]","-an",
