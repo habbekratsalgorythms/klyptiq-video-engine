@@ -1,0 +1,41 @@
+{
+  "title": "LUCIA'S BACKSTORY — GTA VI",
+  "label": "ROCKSTAR-CONFIRMED CHARACTER",
+  "style": "analysis",
+  "content_status": "official_only",
+  "source_url": "https://www.rockstargames.com/VI",
+  "verified_as_of": "2026-11-08",
+  "script": "Lucia is more than half of GTA Six's main duo. Rockstar says fighting for her family landed her in the Leonida Penitentiary. Now she wants the life her mother dreamed about. Rockstar describes her as ready to take matters into her own hands. Are you more excited to play as Lucia, or Jason?",
+  "scenes": [
+    {
+      "caption": "LUCIA'S PAST CHANGES EVERYTHING",
+      "voiceover": "Lucia is more than half of GTA Six's main duo.",
+      "pace": 1.13,
+      "asset": "../../assets/lucia.jpg"
+    },
+    {
+      "caption": "SHE FOUGHT FOR HER FAMILY",
+      "voiceover": "Rockstar says fighting for her family landed her in the Leonida Penitentiary.",
+      "pace": 1.06,
+      "asset": "../../assets/park.jpg"
+    },
+    {
+      "caption": "SHE WANTS THE GOOD LIFE",
+      "voiceover": "Now she wants the life her mother dreamed about.",
+      "pace": 1.11,
+      "asset": "../../assets/lucia.jpg"
+    },
+    {
+      "caption": "SHE'S MAKING SMART MOVES",
+      "voiceover": "Rockstar describes her as ready to take matters into her own hands.",
+      "pace": 1.09,
+      "asset": "../../assets/keys.jpg"
+    },
+    {
+      "caption": "TEAM LUCIA OR TEAM JASON?",
+      "voiceover": "Are you more excited to play as Lucia, or Jason?",
+      "pace": 1.15,
+      "asset": "../../assets/jason.jpg"
+    }
+  ]
+}
