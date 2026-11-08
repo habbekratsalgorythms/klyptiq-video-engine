@@ -90,8 +90,10 @@ def evaluate(record, today=None):
         warnings.append("Unpaid game analysis may be based on owned/original graphics; this is preferable to uncleared footage")
     if category=="unpaid_game_analysis" and third_party:
         manual.append("No blanket publisher permission: business-channel fan policy, quotation exception and audience acquisition must be separately assessed")
-    if category in {"owned_commercial","owned_unpaid"} and third_party:
-        blockers.append("Owned category cannot include third-party clip: reclassify and fully document rights and purpose")
+    if category=="owned_commercial" and quotes:
+        blockers.append("Commercial original/cleared category cannot rely on unlicensed Article 15a quotes")
+    if category=="owned_unpaid" and third_party:
+        blockers.append("Owned-unpaid category requires original assets: classify and document third-party media separately")
     if category=="owned_commercial" and any_growth:
         warnings.append("Audience growth is not a rights license and is distinct from platform ad revenue")
     if basic.get("status")=="HUMAN_LEGAL_DECISION_REQUIRED":
