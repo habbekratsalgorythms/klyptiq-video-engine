@@ -5,12 +5,12 @@
 ## Hard production limits
 
 - Two to six distinct planned shots per spoken scene (minimum two different sources per scene).
-- At least **two thirds of shots must be moving video footage**, and at least three distinct sources across the whole video. **No silent fallback** to stock, fake game scenes, static image loops or downloaded Rockstar content.
+- At least **two thirds of shots must be moving video footage**, and at least three distinct sources across the whole video. **No silent fallback** to stock, fake gameplay or static image loops. Official Rockstar video can be reviewed only via a strictly marked internal-only workflow; commercial reuse rights are not assumed.
 - **0.5–2.1 seconds per shot**. More voiceover requires more shots: do not simply stretch one picture.
-- Each shot declares `media_rights`: `self_recorded`, `licensed` or `permission_documented`. These are declarations, not automatic permission grants. Check real rights independently.
-- Original gameplay/source audio is **never copied** (including copyrighted soundtrack). Only approved offline Kokoro/Piper voiceover and original, synthesized short impact cues.
+- Each shot declares `media_rights`: `self_recorded`, `licensed`, `permission_documented`, or `editorial_review_only`. The last value requires `distribution: internal_review`; it is **never** a commercial use permission. All declarations must be independently verified for intended publication.
+- Original gameplay/source audio is **never copied** (including copyrighted soundtracks). The soundtrack now uses an original synthesized electronic beat with automatic voice-sidechain ducking, offline Kokoro/Piper narration and original short impact cues.
 - Small Klyptiq branding, no persistent giant header, no opaque black subtitle block hiding the action.
-- No paid APIs, no model-generated fake game footage, no uploads or social posting.
+- No paid APIs, no model-generated fake game footage, no social posting. GitHub Actions can upload an explicitly labeled short-lived **review artifact** of a real-source edit; in a public repository this is not a confidential private vault.
 - The old `--pop` and `--motion` commands remain unchanged.
 
 ## Storyboarding example (replace filenames with genuine authorized local assets)
@@ -51,6 +51,26 @@ python render.py briefs/my-director-short.json \
   --quality production --width 1080 --height 1920 \
   -o output/Klyptiq-DIRECTOR-REVIEW.mp4
 ```
+
+## Comparison shots and non-looping sources (V3)
+
+A single shot can combine two different actual video sources in a vertically stacked picture with `layout: "stacked"`. Declare both rights independently:
+
+```json
+{
+  "asset_video": "../assets/owned_jason.mp4",
+  "media_rights": "self_recorded",
+  "layout": "stacked",
+  "secondary_asset_video": "../assets/owned_lucia.mp4",
+  "secondary_media_rights": "self_recorded",
+  "framing": "center",
+  "secondary_framing": "center",
+  "pair_label": "OR",
+  "text": "WHICH ONE?"
+}
+```
+
+`pair_label` accepts `AND`, `OR` or `MEET`. Both videos must be distinct, playable, source-checked and non-looping. Each can be slowed up to 1.8×; when insufficient unique source material exists the render **fails closed** instead of recycling 1-second footage. A demo using eight actual Rockstar character clips (19 planned shots, including six stacked shots) is in `briefs/review/six-more-faces-story-v3.json`, marked **internal review only**; see [reproducible evaluation](REAL_FOOTAGE_REVIEW.md).
 
 ## Release gate: technical PASS is not creative approval
 
