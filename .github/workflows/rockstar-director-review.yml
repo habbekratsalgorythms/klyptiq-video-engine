@@ -9,6 +9,7 @@ on:
       - 'render.py'
       - 'scripts/prepare_official_review_clips.py'
       - 'scripts/evaluate_director_review.py'
+      - 'tests/test_director.py'
   workflow_dispatch:
 permissions:
   contents: read
