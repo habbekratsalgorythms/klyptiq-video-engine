@@ -5,6 +5,7 @@ on:
       - feature/gta-vi-release-week-20261108
     paths:
       - 'briefs/release-week/**'
+      - 'tests/test_release_week.py'
       - 'render.py'
       - '.github/workflows/release-week-review.yml'
   workflow_dispatch:
@@ -37,6 +38,7 @@ jobs:
       - name: Validate facts and rights metadata
         run: |
           . .venv/bin/activate
+          test -s tests/test_release_week.py
           python -m unittest discover -s tests -p 'test_release_week.py' -v
       - name: Render 1080p kinetic-caption review MP4
         env:
