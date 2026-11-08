@@ -99,10 +99,21 @@ def inspect_release(record, today=None):
                 blockers.append(f"{name}: must verify clip is NOT decorative or generic background")
             if asset.get("is_leaked_or_spoiler") is not False:
                 blockers.append(f"{name}: unpublished leaks/spoilers not acceptable")
-            if not isinstance(asset.get("start_seconds"), (int, float)) or isinstance(asset.get("start_seconds"), bool) or asset.get("start_seconds") < 0:
-                blockers.append(f"{name}: explicit excerpt start needed")
-            if not isinstance(asset.get("duration_seconds"), (int, float)) or isinstance(asset.get("duration_seconds"), bool) or asset.get("duration_seconds") <= 0:
-                blockers.append(f"{name}: explicit excerpt length needed; there is no universal safe seconds number")
+            kind = asset.get("asset_type","video")  # Legacy clip audits remain video by default.
+            if kind == "video":
+                if not isinstance(asset.get("start_seconds"), (int, float)) or isinstance(asset.get("start_seconds"), bool) or asset.get("start_seconds") < 0:
+                    blockers.append(f"{name}: explicit excerpt start needed")
+                if not isinstance(asset.get("duration_seconds"), (int, float)) or isinstance(asset.get("duration_seconds"), bool) or asset.get("duration_seconds") <= 0:
+                    blockers.append(f"{name}: explicit excerpt length needed; there is no universal safe seconds number")
+            elif kind == "image":
+                if not _nonempty(asset.get("why_this_image_is_necessary"), 45):
+                    blockers.append(f"{name}: screenshot quotation must explain why THIS actual image is needed for critique")
+                if not _nonempty(asset.get("why_image_extent_is_proportionate"), 40):
+                    blockers.append(f"{name}: screenshot quotation must explain whether cropping/detail would suffice")
+                if asset.get("generic_poll_or_decoration") is not False:
+                    blockers.append(f"{name}: generic engagement poll with decorative screenshot is not validated quotation")
+            else:
+                blockers.append(f"{name}: asset_type must be video or image")
             if not _nonempty(asset.get("editorial_assessment_by"), 3):
                 blockers.append(f"{name}: identified human quote reviewer is mandatory")
             if any(m != "none" for m in (money or [])) and not _nonempty(asset.get("commercial_context_legal_analysis"), 45):
