@@ -37,7 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p output/launch-thumbnails
-          for second in 8 16 25 34 45 58 76; do
+          for second in 4 7 10 13 16 19 22 25 28 31 34 37 40 43 46 49 52 55 58 61 64 67 70 73 76 79 82 85; do
             echo "REMOTE_SAMPLE second=$second"
             timeout 35 ffmpeg -hide_banner -loglevel error -nostdin \
               -rw_timeout 18000000 -ss "$second" -i "$SOURCE" \
@@ -45,24 +45,24 @@ jobs:
               -q:v 4 "output/launch-thumbnails/$(printf '%02d' "$second").jpg"
             test -s "output/launch-thumbnails/$(printf '%02d' "$second").jpg"
           done
-          echo "Seven remotely sought video frames passed; raw trailer NOT retained."
+          echo "28 remotely sought trailer frames passed; raw trailer NOT retained."
       - name: Create image-only source scene review contact sheet
         run: |
           python - <<'PY'
           from pathlib import Path
           from PIL import Image, ImageDraw, ImageFont
           files=sorted(Path("output/launch-thumbnails").glob("*.jpg"))
-          assert len(files)==7
-          w,h=480,306
-          sheet=Image.new("RGB",(2*w,4*h),(8,16,25))
+          assert len(files)==28
+          w,h=320,210
+          sheet=Image.new("RGB",(4*w,7*h),(8,16,25))
           draw=ImageDraw.Draw(sheet)
-          font=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",19)
+          font=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",15)
           for idx,p in enumerate(files):
             img=Image.open(p).convert("RGB")
             img.thumbnail((w,h-32))
-            x=(idx%2)*w; y=(idx//2)*h
+            x=(idx%4)*w; y=(idx//4)*h
             sheet.paste(img,(x+(w-img.width)//2,y))
-            draw.text((x+8,y+h-28),f"LAUNCH TRAILER AT {p.stem}s",fill=(128,245,222),font=font)
+            draw.text((x+8,y+h-28),f"TRAILER {p.stem}s",fill=(128,245,222),font=font)
           sheet.save("output/LAUNCH-REMOTE-SAMPLE-contact.jpg",quality=90)
           print("Created review contact sheet; no 782MB archive.")
           PY
