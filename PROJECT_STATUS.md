@@ -72,3 +72,13 @@ Updated 2026-11-07. Project is independent from SpotlessPro Agent Lab, the hours
 - Review artifact: `Klyptiq-Pop-voices-and-1080p-review` in run #42426828142 (temporary GitHub artifact, expires ~2026-11-21). Preview only, nothing published to Metricool.
 - Limitations: this is more dynamic **still-photo editing**, not yet professional gameplay-video cuts or precise word-level sync. Rights review and subjective quality approval remain required before autopublishing. No Descript credits or paid subscriptions used.
 - Next development priority: optional licensed gameplay/video clip input, transitions/beat-matched audio and a larger variety of editorial image assets before unattended daily production. Preserve separation from SpotlessPro Agent Lab.
+
+## 8 November 2026 — verified release-week editorial review batch
+
+- Rockstar official GTA VI portal https://www.rockstargames.com/VI was independently checked: pre-load scheduled for 10 November, release 19 November 2026, PS5/Xbox Series X|S, official character biographies.
+- Three separate briefing JSONs `briefs/release-week/preload-nov10.json`, `lucia-backstory.json`, `jason-backstory.json` contain original scripts, source URL, and scene-level voice cues.
+- Three independent GitHub Actions Kokoro voice + kinetic pop render jobs passed at https://github.com/habbekratsalgorythms/klyptiq-video-engine/actions/runs/42497800523. Each has a 1080x1920 MP4 GitHub artifact (14-day retention), with H264 video and AAC audio.
+- New source/brief validation checks were added; PR #5 merged to main at `4efc6e98b82e720e8d2a0ffeb6dc1c556d5e29e0`.
+- Nothing was posted to Metricool or promoted as a licensed commercial video. Rockstar policy https://support.rockstargames.com/articles/7bNaeoMFTV0iUDGhStTXvz/policy-on-posting-copyrighted-rockstar-games-material principally addresses noncommercial fan uses. Rights to promote/monetize imported Rockstar artwork are not presumed.
+- Editorial release / suggested publication windows documented at `docs/RELEASE_WEEK_NOV2026.md`. Recheck official facts on the actual posting date; do not claim scheduled posts are published.
+- Next: licensed gameplay/video clips rather than static images; subjective full-video review, fact/rights approval, then nonduplicative Metricool scheduling. No new paid API or Descript usage.
