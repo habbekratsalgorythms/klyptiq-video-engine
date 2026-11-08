@@ -79,6 +79,8 @@ A scene can now specify `"voiceover":"One complete spoken sentence."` alongside 
 
 ### Assets and rights
 
+**Commercial release is blocked for the existing Rockstar-footage V3/V4 review videos** until appropriately scoped commercial permissions have been documented. Read the [November 2026 official-source monetization audit](docs/COMMERCIAL_RIGHTS_AUDIT.md) before any ad revenue, sponsor, affiliate or paid reuse; fan-video allowances are not a commercialization license. Original, rights-cleared hardware/tool videos are the suggested monetization track.
+
 The optional `scripts/prepare_editorial_media.sh` retrieves images previously imported into the owner's Metricool workspace for evaluation. Files remain local under ignored `assets/` and are not committed or redistributed. This is **not** an assertion that all Rockstar screenshots or footage may be used commercially. Verify the relevant media rights and publisher policies before monetized posting. No fabricated gameplay or misleading claims.
 
 You can place other authorized image files in `assets/` and reference them from scene JSON as `"asset":"../assets/approved.jpg"`.
