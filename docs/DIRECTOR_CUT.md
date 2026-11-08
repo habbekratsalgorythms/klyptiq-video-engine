@@ -5,7 +5,7 @@
 ## Hard production limits
 
 - Two to six distinct planned shots per spoken scene (minimum two different sources per scene).
-- At least **one third of shots must be moving video footage**, and at least three distinct sources across the whole video. **No silent fallback** to stock, fake game scenes, static image loops or downloaded Rockstar content.
+- At least **two thirds of shots must be moving video footage**, and at least three distinct sources across the whole video. **No silent fallback** to stock, fake game scenes, static image loops or downloaded Rockstar content.
 - **0.5–2.1 seconds per shot**. More voiceover requires more shots: do not simply stretch one picture.
 - Each shot declares `media_rights`: `self_recorded`, `licensed` or `permission_documented`. These are declarations, not automatic permission grants. Check real rights independently.
 - Original gameplay/source audio is **never copied** (including copyrighted soundtrack). Only approved offline Kokoro/Piper voiceover and original, synthesized short impact cues.
