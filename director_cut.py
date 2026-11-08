@@ -12,7 +12,7 @@ import wave
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
-RIGHTS = {"self_recorded", "licensed", "permission_documented"}
+RIGHTS = {"self_recorded", "licensed", "permission_documented", "editorial_review_only"}
 VIDEO_SUFFIXES = {".mp4", ".mov", ".mkv", ".webm"}
 
 def run(cmd):
@@ -36,6 +36,8 @@ def prepare(brief, brief_path):
                 raise ValueError("Each director shot must choose exactly one image or video")
             if shot.get("media_rights") not in RIGHTS:
                 raise ValueError("Each director shot needs explicit media_rights")
+            if shot["media_rights"] == "editorial_review_only" and brief.get("distribution") != "internal_review":
+                raise ValueError("Unlicensed editorial sources are restricted to internal_review")
             key = "asset_video" if is_video else "asset"
             src = (Path(brief_path).resolve().parent / shot[key]).resolve()
             if not src.is_file():
@@ -145,6 +147,52 @@ def original_cut_sfx(path, positions, total):
         import array
         f.writeframes(array.array("h",(max(-32768,min(32767,x)) for x in samples)).tobytes())
 
+def original_music_bed(path, total, bpm=142):
+    """Generate an original dark electronic rhythm as raw PCM, no samples or music licenses.
+
+    A controlled kick/snare/hat/bass arrangement under the voice. Its pseudo-random
+    noise is deterministic; existing external audio is never copied.
+    """
+    import array
+    sr=22050
+    n=max(1,int(math.ceil(total*sr)))
+    beat_len=60/bpm
+    rng=random.Random(314159)
+    sample=array.array("h")
+    low_notes=(55.0,65.406,73.416,49.0)
+    for i in range(n):
+        t=i/sr
+        beat=t/beat_len
+        k=math.floor(beat)
+        pos=t-k*beat_len
+        # Sub kick on beats 1 and 3 (with a descending pitch sweep).
+        kick=0.0
+        if (k%4) in (0,2) and pos<.27:
+            phase=2*math.pi*(78*pos-62*pos*pos)
+            kick=.36*math.exp(-18*pos)*math.sin(phase)
+        # Backbeat snare on beats 2 and 4.
+        snare=0.0
+        if k%4 in (1,3) and pos<.11:
+            snare=.10*(rng.random()*2-1)*math.exp(-31*pos)
+        # Sparse 8th-note high hats (no persistent high-frequency hiss).
+        half=math.floor(beat*2)
+        hp=t-half*(beat_len/2)
+        hat=.027*(rng.random()*2-1)*math.exp(-90*hp) if hp<.07 else 0.0
+        # Four-bar bass phrase: thin synth pluck and quiet harmonic body.
+        note=low_notes[(k//4)%len(low_notes)]
+        bass_env=math.exp(-3.7*pos)*(1 if k%4 in (0,2,3) else .36)
+        bass=.12*bass_env*(math.sin(2*math.pi*note*t)+.3*math.sin(4*math.pi*note*t))
+        # Restrained opening build and closing fall.
+        gain=min(1.0,.30+.70*t/.90, .30+.70*max(0,total-t)/.70)
+        value=int(max(-.88,min(.88,(kick+snare+hat+bass)*gain))*32767)
+        sample.append(value)
+    with wave.open(str(path),"wb") as f:
+        f.setnchannels(1)
+        f.setsampwidth(2)
+        f.setframerate(sr)
+        f.writeframes(sample.tobytes())
+
+
 def render_director(work, brief, scenes, durations, w, h, crf, wav, total_length, target):
     """Cut every 0.5-2.1 s, mix original micro-impacts under the voice."""
     clips = []
@@ -194,13 +242,22 @@ def render_director(work, brief, scenes, durations, w, h, crf, wav, total_length
     manifest = work / "director_manifest.txt"
     manifest.write_text("".join(f"file '{p}'\n" for p in clips))
     fx = work / "original_fx.wav"
+    score = work / "original_score.wav"
     original_cut_sfx(fx,cut_positions,total_length)
+    original_music_bed(score,total_length)
     run(["ffmpeg","-hide_banner","-loglevel","error","-y",
-         "-safe","0","-f","concat","-i",manifest,"-i",wav,"-i",fx,
+         "-safe","0","-f","concat","-i",manifest,"-i",wav,"-i",fx,"-i",score,
          "-filter_complex",
-         "[2:a]volume=0.35[fx];[1:a][fx]amix=inputs=2:duration=first:normalize=0,"
+         # Music is dynamically ducked by voice so it stays genuinely audible
+         # in pauses without overwhelming dialogue.
+         "[1:a]asplit=2[voice][key];"
+         "[3:a]volume=0.22[score];[score][key]"
+         "sidechaincompress=threshold=0.018:ratio=8:attack=8:release=170[duck];"
+         "[2:a]volume=0.30[fx];[voice][duck][fx]"
+         "amix=inputs=3:duration=first:normalize=0,"
          "loudnorm=I=-16:TP=-1.5:LRA=7[a]",
          "-map","0:v:0","-map","[a]","-c:v","copy","-c:a","aac",
          "-b:a","192k","-movflags","+faststart","-t",str(total_length),target])
     return {"shot_count":shot_n,"cuts":len(cut_positions),
-            "source_audio_used":False,"original_sound_cues":len(cut_positions)}
+            "source_audio_used":False,"original_sound_cues":len(cut_positions),
+            "original_score":True,"music_automatically_ducked":True}
