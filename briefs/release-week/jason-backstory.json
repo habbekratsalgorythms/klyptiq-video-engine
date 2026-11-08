@@ -1,0 +1,41 @@
+{
+  "title": "JASON'S BACKSTORY — GTA VI",
+  "label": "ROCKSTAR-CONFIRMED CHARACTER",
+  "style": "analysis",
+  "content_status": "official_only",
+  "source_url": "https://www.rockstargames.com/VI",
+  "verified_as_of": "2026-11-08",
+  "script": "Jason wants an easy life, but everything keeps getting harder. Rockstar says he grew up around grifters and crooks. After his troubled teens, he tried to change course in the Army. He ends up in the Keys, working for local drug runners. Rockstar says meeting Lucia could be the best or worst thing for Jason.",
+  "scenes": [
+    {
+      "caption": "JASON WANTS AN EASY LIFE",
+      "voiceover": "Jason wants an easy life, but everything keeps getting harder.",
+      "pace": 1.13,
+      "asset": "../../assets/jason.jpg"
+    },
+    {
+      "caption": "HIS PAST WASN'T SIMPLE",
+      "voiceover": "Rockstar says he grew up around grifters and crooks.",
+      "pace": 1.09,
+      "asset": "../../assets/vice.jpg"
+    },
+    {
+      "caption": "HE SPENT TIME IN THE ARMY",
+      "voiceover": "After his troubled teens, he tried to change course in the Army.",
+      "pace": 1.08,
+      "asset": "../../assets/jason.jpg"
+    },
+    {
+      "caption": "THEN THE LEONIDA KEYS",
+      "voiceover": "He ends up in the Keys, working for local drug runners.",
+      "pace": 1.1,
+      "asset": "../../assets/keys.jpg"
+    },
+    {
+      "caption": "WILL LUCIA CHANGE HIS LIFE?",
+      "voiceover": "Rockstar says meeting Lucia could be the best or worst thing for Jason.",
+      "pace": 1.16,
+      "asset": "../../assets/lucia.jpg"
+    }
+  ]
+}
