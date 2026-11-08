@@ -1,0 +1,105 @@
+name: Klyptiq launch-trailer Director V4 (editorial review ONLY)
+on:
+  push:
+    branches: [feature/launch-trailer-director-v4-20261108]
+    paths:
+      - '.github/workflows/launch-trailer-v4-review.yml'
+      - 'briefs/review/launch-trailer-v4.json'
+      - 'scripts/prepare_launch_trailer_excerpts.py'
+      - 'director_cut.py'
+      - 'render.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  render-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      OUTPUT_MP4: output/KLYPTIQ-Launch-Trailer-Director-V4-1080p-REVIEW.mp4
+    steps:
+      - name: Checkout own engine (NO Descript, NO Metricool publishing)
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install free local video tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg espeak fonts-dejavu-core curl
+          python -m venv .venv
+          . .venv/bin/activate
+          python -m pip install -r requirements.txt
+      - name: Fail closed if editorial rights flags or shot plan changed
+        run: |
+          . .venv/bin/activate
+          python - <<'PY'
+          import json
+          p='briefs/review/launch-trailer-v4.json'
+          b=json.load(open(p))
+          shots=[x for s in b['scenes'] for x in s['shots']]
+          assert b['distribution']=='internal_review'
+          assert b['license_status']=='commercial_rights_not_established'
+          assert len(shots)==20
+          assert all(s['media_rights']=='editorial_review_only' for s in shots)
+          assert all('asset_video' in s for s in shots)
+          assert b['script']==' '.join(s['voiceover'] for s in b['scenes'])
+          assert b['source_url']=='https://www.rockstargames.com/VI/media/videos'
+          print('SOURCE/RIGHTS/EDITORIAL GATES VERIFIED; NO PUBLICATION',flush=True)
+          PY
+          python -m unittest discover -s tests -v
+      - name: Fetch pinned official character animation ZIP (review only)
+        run: |
+          curl --fail --location --retry 3 --silent --show-error --max-time 210 \
+            https://media.rockstargames.com/VI/downloads/videos/GTAVI_Videos.zip -o "$RUNNER_TEMP/official.zip"
+          echo '017b806729ae09d54180e9c83c31ef201ff4288751186f20d11ea2c513de7698  '"$RUNNER_TEMP/official.zip" | sha256sum --check
+          . .venv/bin/activate
+          python scripts/prepare_official_review_clips.py \
+            --archive "$RUNNER_TEMP/official.zip" --output assets/rockstar_review --internal-review-only
+      - name: Acquire just seven 2-second excerpts, NOT the 782 MB full trailer
+        run: |
+          . .venv/bin/activate
+          python scripts/prepare_launch_trailer_excerpts.py \
+            --output assets/rockstar_review --internal-review-only
+      - name: Install verified local neural voice
+        run: |
+          bash scripts/setup_kokoro.sh
+          . .venv/bin/activate
+          python - <<'PY'
+          from importlib.metadata import version
+          from packaging.version import Version
+          assert Version(version('kokoro-onnx')) >= Version('0.6.0')
+          PY
+      - name: Render 20-shot video through Klyptiq's own Director engine
+        run: |
+          . .venv/bin/activate
+          python render.py briefs/review/launch-trailer-v4.json \
+            --tts kokoro --model models/kokoro-v1.0.fp16.onnx \
+            --voice am_puck --pace 1.16 --director --quality production \
+            --width 1080 --height 1920 --crf 22 -o "$OUTPUT_MP4" \
+            | tee output/director-v4-result.json
+      - name: Real decoded video/audio QA, review contact-sheet
+        run: |
+          . .venv/bin/activate
+          python scripts/evaluate_director_review.py "$OUTPUT_MP4" \
+            --summary output/review-v4-quality.json \
+            --contact-sheet output/REVIEW-V4-contact-sheet.jpg
+          printf '%s\n' \
+            'KLYPTIQ V4: INTERNAL EDITORIAL QUALITY REVIEW ONLY' \
+            'Official Rockstar material: COMMERCIAL RIGHTS NOT ESTABLISHED.' \
+            'This is not approved social media content. Do not auto-post.' \
+            'Own FFmpeg, Python and offline neural narration; no Descript.' \
+            > output/READ-V4-LICENSING.txt
+      - name: Save temporary review video, NOT raw clips or full Rockstar archive
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: KLYPTIQ-LAUNCH-TRAILER-V4-REVIEW-ONLY
+          path: |
+            output/KLYPTIQ-Launch-Trailer-Director-V4-1080p-REVIEW.mp4
+            output/REVIEW-V4-contact-sheet.jpg
+            output/review-v4-quality.json
+            output/director-v4-result.json
+            output/READ-V4-LICENSING.txt
+          retention-days: 3
+          if-no-files-found: error
