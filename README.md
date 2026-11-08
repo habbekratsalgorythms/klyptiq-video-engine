@@ -63,6 +63,10 @@ The `--quality production` guard requires either Piper or Kokoro (and rejects eS
 
 For cheaper technical testing, use `--quality preview --width 360 --height 640`. Never publish these previews.
 
+### Real gameplay/video clips — opt in
+
+Klyptiq's `--pop` mode now also accepts **local video clips** instead of only photographs, mixed in any order. Use only material you have the appropriate rights to distribute. The imported clip's original audio is deliberately not copied. See [VIDEO_INPUTS.md](docs/VIDEO_INPUTS.md) for setup and an example JSON scene with `asset_video` and mandatory `media_rights`. No new footage is generated or downloaded.
+
 ### Caption timing
 
 A scene can now specify `"voiceover":"One complete spoken sentence."` alongside `"caption":"Short screen phrase"`. If *all* scenes contain voiceover, the renderer synthesizes each spoken sentence separately, measures the real WAV duration, and aligns its image and caption to that duration. Old single-script briefs remain supported, but use approximate timing.
