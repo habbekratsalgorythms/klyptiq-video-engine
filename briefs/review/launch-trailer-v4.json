@@ -1,0 +1,144 @@
+{
+  "title": "GTA VI LAUNCH TRAILER: LOOK AGAIN",
+  "label": "KLYPTIQ EDITORIAL",
+  "style": "analysis",
+  "content_status": "short_original_editorial_commentary",
+  "verified_as_of": "2026-11-08",
+  "source_url": "https://www.rockstargames.com/VI/media/videos",
+  "distribution": "internal_review",
+  "license_status": "commercial_rights_not_established",
+  "editorial_note": "V4 creative review only. Official Rockstar short videos and selected two-second launch trailer excerpts; no trailer source audio. NOT for auto publishing or monetized media.",
+  "script": "Stop scrolling. Rockstar's GTA Six launch trailer has a lot to take in. Watch the locations change. The mood. The lights. The speed. Leonida looks massive. Now look at the people. Jason. Lucia. And a whole cast around them. Every shot hints at another story. So where would you explore first? Tell us below.",
+  "scenes": [
+    {
+      "caption": "LOOK AGAIN",
+      "voiceover": "Stop scrolling. Rockstar's GTA Six launch trailer has a lot to take in.",
+      "pace": 1.16,
+      "shots": [
+        {
+          "asset_video": "../../assets/rockstar_review/launch_08.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "STOP SCROLLING"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/launch_16.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "LOOK AGAIN"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/launch_25.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "GTA SIX"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/launch_34.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "ONE WILD WORLD"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/launch_45.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "THE LAUNCH TRAILER"
+        }
+      ]
+    },
+    {
+      "caption": "SEVEN GLIMPSES OF LEONIDA",
+      "voiceover": "Watch the locations change. The mood. The lights. The speed. Leonida looks massive.",
+      "pace": 1.17,
+      "shots": [
+        {
+          "asset_video": "../../assets/rockstar_review/launch_58.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "NEW LOCATION"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/launch_76.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "NEW MOOD"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/GTAVI_Official_Cover_Art_Landscape.mp4",
+          "media_rights": "editorial_review_only",
+          "start": 11,
+          "text": "THE LIGHTS"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/launch_25.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "THE ENERGY"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/launch_45.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "LEONIDA"
+        }
+      ]
+    },
+    {
+      "caption": "MEET THE FACES",
+      "voiceover": "Now look at the people. Jason. Lucia. And a whole cast around them.",
+      "pace": 1.17,
+      "shots": [
+        {
+          "asset_video": "../../assets/rockstar_review/Jason_Duval_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "JASON"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Lucia_Caminos_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "LUCIA"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Cal_Hampton_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "CAL"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/DreQuan_Priest_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "DRE'QUAN"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Raul_Bautista_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "RAUL"
+        }
+      ]
+    },
+    {
+      "caption": "YOUR FIRST STOP?",
+      "voiceover": "Every shot hints at another story. So where would you explore first? Tell us below.",
+      "pace": 1.16,
+      "shots": [
+        {
+          "asset_video": "../../assets/rockstar_review/launch_34.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "MORE STORIES"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/launch_58.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "MORE PLACES"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/Real_Dimez_Video_Clip.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "MORE FACES"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/launch_76.mp4",
+          "media_rights": "editorial_review_only",
+          "text": "WHERE FIRST?"
+        },
+        {
+          "asset_video": "../../assets/rockstar_review/GTAVI_Official_Cover_Art_Landscape.mp4",
+          "media_rights": "editorial_review_only",
+          "start": 19,
+          "text": "YOUR FIRST STOP?"
+        }
+      ]
+    }
+  ]
+}
