@@ -165,7 +165,8 @@ def render_pop_video(work,brief,scenes,durations,w,h,crf,wav,total_length,target
         base=work/f"pop_photo_{i:02d}.png"
         header=work/f"pop_header_{i:02d}.png"
         clip=work/f"pop_clip_{i:02d}.mp4"
-        background(w,h,scene.get("_asset"),brief.get("style","news")).save(base)
+        if not scene.get("_video"):
+            background(w,h,scene.get("_asset"),brief.get("style","news")).save(base)
         # Keep a fixed header and footer, but draw changing captions separately.
         make_text_overlay(header,w,h,brief["title"],"",brief.get("label","NEWS / ANALYSIS"))
         beats=split_caption_beats(scene["caption"])
@@ -174,14 +175,23 @@ def render_pop_video(work,brief,scenes,durations,w,h,crf,wav,total_length,target
             p=work/f"pop_{i:02d}_beat_{j:02d}.png"
             make_pop_caption(p,w,h,words,i,len(scenes))
             paths.append(p)
-        inputs=["-loop","1","-framerate","30","-i",str(base),
-                "-loop","1","-framerate","30","-i",str(header)]
+        if scene.get("_video"):
+            # Repeat a legitimate user-supplied clip if shorter than the voiceover.
+            # No original gameplay audio is copied; the verified narration is the only audio.
+            inputs=["-stream_loop","-1","-i",scene["_video"],
+                    "-loop","1","-framerate","30","-i",str(header)]
+            graph=(f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,"
+                   f"crop={w}:{h},setsar=1,fps=30,setpts=PTS-STARTPTS[photo];"
+                   f"[photo][1:v]overlay=0:0:shortest=1[base]")
+        else:
+            inputs=["-loop","1","-framerate","30","-i",str(base),
+                    "-loop","1","-framerate","30","-i",str(header)]
+            speed="0.00020" if i%2==0 else "0.00015"
+            graph=(f"[0:v]zoompan=z='min(1.0+on*{speed},1.065)':"
+                   f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
+                   f"d=1:s={w}x{h}:fps=30[photo];"
+                   f"[photo][1:v]overlay=0:0:shortest=1[base]")
         for p in paths: inputs+=["-loop","1","-framerate","30","-i",str(p)]
-        speed="0.00020" if i%2==0 else "0.00015"
-        graph=(f"[0:v]zoompan=z='min(1.0+on*{speed},1.065)':"
-               f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
-               f"d=1:s={w}x{h}:fps=30[photo];"
-               f"[photo][1:v]overlay=0:0:shortest=1[base]")
         preceding="base"
         for j in range(len(paths)):
             # Bound the first and last beat so no caption disappears between scenes.
@@ -260,6 +270,17 @@ def parse_brief(path):
             path_asset=(Path(path).resolve().parent/scene["asset"]).resolve()
             if not path_asset.is_file(): raise FileNotFoundError("Missing image asset: "+str(path_asset))
             scene["_asset"]=str(path_asset)
+        if scene.get("asset_video"):
+            video=(Path(path).resolve().parent/scene["asset_video"]).resolve()
+            if video.suffix.lower() not in (".mp4",".mov",".mkv",".webm"):
+                raise ValueError("Video asset must be MP4, MOV, MKV or WEBM")
+            if scene.get("media_rights") not in ("self_recorded","licensed","permission_documented"):
+                raise ValueError("Video scene requires an explicit media_rights declaration")
+            if not video.is_file(): raise FileNotFoundError("Missing licensed clip: "+str(video))
+            info=run(["ffprobe","-v","error","-select_streams","v:0",
+                      "-show_entries","stream=codec_type","-of","default=noprint_wrappers=1:nokey=1",video]).stdout.strip()
+            if info!="video": raise ValueError("Video clip has no decodable video stream")
+            scene["_video"]=str(video)
     return brief
 
 def build_narration(work,brief,scenes,engine,model,voice,pace=1.0):
@@ -300,6 +321,8 @@ def render(brief_path,out,engine,model,voice,width,height,crf,quality="preview",
     if quality=="production" and (engine not in ("piper","kokoro") or width<1080 or height<1920):
         raise ValueError("Production needs a neural Piper/Kokoro voice and at least 1080x1920")
     brief=parse_brief(brief_path)
+    if any(scene.get("_video") for scene in brief["scenes"]) and not pop:
+        raise ValueError("Use --pop to render scene asset_video clips; static modes cannot silently ignore video")
     out=Path(out).resolve();out.parent.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="klyptiq-") as tmp:
         work=Path(tmp)
@@ -321,7 +344,7 @@ def render(brief_path,out,engine,model,voice,width,height,crf,quality="preview",
                 f.write(f"file '{slide}'\n")
             run(["ffmpeg","-hide_banner","-loglevel","error","-y","-safe","0","-f","concat","-i",manifest,"-i",wav,"-vf",f"fps=30,scale={width}:{height}:flags=lanczos,format=yuv420p","-af","loudnorm=I=-16:TP=-1.5:LRA=7","-c:v","libx264","-preset","veryfast","-crf",str(crf),"-c:a","aac","-b:a","192k","-movflags","+faststart","-t",str(total_length),target])
         # Quality gates: a blank-background video or missing/quiet voice must fail, not publish.
-        if not all(scene.get("_asset") for scene in scenes):
+        if not all(scene.get("_asset") or scene.get("_video") for scene in scenes):
             raise ValueError("No finished videos without an approved image for every scene")
         measure=run(["ffmpeg","-hide_banner","-i",target,"-vn","-af","volumedetect","-f","null","-"]).stderr
         import re
