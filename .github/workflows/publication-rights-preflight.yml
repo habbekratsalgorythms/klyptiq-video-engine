@@ -1,0 +1,34 @@
+name: Per-publication rights / Article 15a preflight (no publishing)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/publication_rights_preflight.py'
+      - 'tests/test_publication_rights.py'
+      - '.github/workflows/publication-rights-preflight.yml'
+      - 'docs/PER_PUBLICATION_RIGHTS.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  rights-preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check rights-audit syntax and zero-dependency unit tests
+        run: |
+          python -m py_compile scripts/publication_rights_preflight.py
+          python -m unittest discover -s tests -p test_publication_rights.py -v
+      - name: Confirm content cannot be auto-released by the preflight
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0,"scripts")
+          from publication_rights_preflight import inspect_release
+          assert inspect_release({"content_id":"unreviewed"})["status"]=="BLOCK"
+          assert inspect_release({"content_id":"unreviewed"})["machine_publish_approved"] is False
+          print("PASS: unreviewed content BLOCKED, CLI cannot approve publication")
+          PY
