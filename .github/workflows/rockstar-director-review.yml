@@ -22,11 +22,15 @@ jobs:
     steps:
       - name: Use repository engine only — no Descript, no social credentials, no paid APIs
         uses: actions/checkout@v4
+      - name: Use Python 3.12 to select type-aware kokoro-onnx 0.6
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Install free offline FFmpeg, Python and media prerequisites
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y ffmpeg fonts-dejavu-core espeak curl
-          python3 -m venv .venv
+          python -m venv .venv
           . .venv/bin/activate
           python -m pip install -r requirements.txt
       - name: Verify editorial storyboard and prevent any automatic distribution
@@ -56,7 +60,16 @@ jobs:
             --output assets/rockstar_review \
             --internal-review-only
       - name: Install locally executed Kokoro narrator with pinned model SHA
-        run: bash scripts/setup_kokoro.sh
+        run: |
+          bash scripts/setup_kokoro.sh
+          . .venv/bin/activate
+          python - <<'PY'
+          from importlib.metadata import version
+          from packaging.version import Version
+          installed=version("kokoro-onnx")
+          print("Kokoro ONNX version:",installed)
+          assert Version(installed)>=Version("0.6.0"), "Old Kokoro mis-sends int32 speed into float-only August 2026 model"
+          PY
       - name: Render actual 18-cut cinematic vertical review on own open-source pipeline
         run: |
           . .venv/bin/activate
