@@ -19,7 +19,8 @@
           "asset_video": "../../assets/rockstar_review/GTAVI_Official_Cover_Art_Landscape.mp4",
           "media_rights": "editorial_review_only",
           "framing": "center",
-          "text": "EIGHT FACES"
+          "text": "EIGHT FACES",
+          "start": 8
         },
         {
           "asset_video": "../../assets/rockstar_review/Lucia_Caminos_Video_Clip.mp4",
@@ -37,7 +38,8 @@
           "asset_video": "../../assets/rockstar_review/GTAVI_Official_Cover_Art_Landscape.mp4",
           "media_rights": "editorial_review_only",
           "framing": "center",
-          "text": "LOOKS INNOCENT"
+          "text": "LOOKS INNOCENT",
+          "start": 18
         }
       ]
     },
@@ -49,20 +51,20 @@
         {
           "asset_video": "../../assets/rockstar_review/Jason_Duval_Video_Clip.mp4",
           "media_rights": "editorial_review_only",
-          "framing": "left",
+          "framing": "center",
           "text": "JASON DUVAL"
         },
         {
           "asset_video": "../../assets/rockstar_review/Lucia_Caminos_Video_Clip.mp4",
           "media_rights": "editorial_review_only",
-          "framing": "right",
+          "framing": "center",
           "text": "LUCIA CAMINOS"
         },
         {
-          "asset_video": "../../assets/rockstar_review/Cal_Hampton_Video_Clip.mp4",
+          "asset_video": "../../assets/rockstar_review/Raul_Bautista_Video_Clip.mp4",
           "media_rights": "editorial_review_only",
           "framing": "center",
-          "text": "CAL HAMPTON"
+          "text": "RAUL BAUTISTA"
         },
         {
           "asset_video": "../../assets/rockstar_review/Boobie_Ike_Video_Clip.mp4",
@@ -123,13 +125,13 @@
         {
           "asset_video": "../../assets/rockstar_review/Lucia_Caminos_Video_Clip.mp4",
           "media_rights": "editorial_review_only",
-          "framing": "left",
+          "framing": "center",
           "text": "TEAM LUCIA?"
         },
         {
           "asset_video": "../../assets/rockstar_review/Jason_Duval_Video_Clip.mp4",
           "media_rights": "editorial_review_only",
-          "framing": "right",
+          "framing": "center",
           "text": "TEAM JASON?"
         },
         {
@@ -142,7 +144,8 @@
           "asset_video": "../../assets/rockstar_review/GTAVI_Official_Cover_Art_Landscape.mp4",
           "media_rights": "editorial_review_only",
           "framing": "center",
-          "text": "YOUR PICK ↓"
+          "text": "YOUR PICK ↓",
+          "start": 19
         }
       ]
     }
