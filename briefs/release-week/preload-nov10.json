@@ -1,0 +1,41 @@
+{
+  "title": "GTA VI PRE-LOAD STARTS NOV 10",
+  "label": "OFFICIAL ROCKSTAR NEWS",
+  "style": "news",
+  "content_status": "official_only",
+  "source_url": "https://www.rockstargames.com/VI",
+  "verified_as_of": "2026-11-08",
+  "script": "GTA Six pre-load starts November tenth. Here's what Rockstar has confirmed! The release is scheduled for November nineteenth, twenty twenty-six. Rockstar lists PlayStation Five and Xbox Series X and S. Keep an eye on official updates, and avoid leaked footage. So, are you playing on PlayStation or Xbox? Let us know!",
+  "scenes": [
+    {
+      "caption": "GTA VI PRE-LOAD: NOVEMBER 10",
+      "voiceover": "GTA Six pre-load starts November tenth. Here's what Rockstar has confirmed!",
+      "pace": 1.16,
+      "asset": "../../assets/lucia.jpg"
+    },
+    {
+      "caption": "LAUNCH: NOVEMBER 19, 2026",
+      "voiceover": "The release is scheduled for November nineteenth, twenty twenty-six.",
+      "pace": 1.08,
+      "asset": "../../assets/vice.jpg"
+    },
+    {
+      "caption": "PS5 AND XBOX SERIES X|S",
+      "voiceover": "Rockstar lists PlayStation Five and Xbox Series X and S.",
+      "pace": 1.1,
+      "asset": "../../assets/keys.jpg"
+    },
+    {
+      "caption": "GET READY — DON'T GET SPOILED",
+      "voiceover": "Keep an eye on official updates, and avoid leaked footage.",
+      "pace": 1.12,
+      "asset": "../../assets/park.jpg"
+    },
+    {
+      "caption": "WHICH PLATFORM ARE YOU ON?",
+      "voiceover": "So, are you playing on PlayStation or Xbox? Let us know!",
+      "pace": 1.17,
+      "asset": "../../assets/jason.jpg"
+    }
+  ]
+}

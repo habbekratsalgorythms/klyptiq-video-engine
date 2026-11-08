@@ -1,0 +1,68 @@
+name: GTA VI release-week editorial review videos
+on:
+  push:
+    branches:
+      - feature/gta-vi-release-week-20261108
+    paths:
+      - 'briefs/release-week/**'
+      - 'tests/test_release_week.py'
+      - 'render.py'
+      - '.github/workflows/release-week-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        slug: [preload-nov10, lucia-backstory, jason-backstory]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install free local video dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak fonts-dejavu-core curl
+          python -m venv .venv
+          . .venv/bin/activate
+          python -m pip install -r requirements.txt
+      - name: Install verified offline Kokoro voice
+        run: bash scripts/setup_kokoro.sh
+      - name: Prepare preexisting editorial images
+        run: bash scripts/prepare_editorial_media.sh
+      - name: Validate facts and rights metadata
+        run: |
+          . .venv/bin/activate
+          test -s tests/test_release_week.py
+          python -m unittest discover -s tests -p 'test_release_week.py' -v
+      - name: Render 1080p kinetic-caption review MP4
+        env:
+          VIDEO_SLUG: ${{ matrix.slug }}
+        run: |
+          . .venv/bin/activate
+          python render.py "briefs/release-week/${VIDEO_SLUG}.json" \
+            --tts kokoro --model models/kokoro-v1.0.fp16.onnx \
+            --voice am_puck --pace 1.12 --pop \
+            --width 1080 --height 1920 --quality production \
+            -o "output/Klyptiq-${VIDEO_SLUG}-REVIEW.mp4"
+      - name: Validate H264 picture, AAC audio, and nonempty file
+        env:
+          VIDEO_SLUG: ${{ matrix.slug }}
+        run: |
+          video="output/Klyptiq-${VIDEO_SLUG}-REVIEW.mp4"
+          test -s "$video"
+          test "$(ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 "$video")" = h264
+          test "$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 "$video")" = aac
+          ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 "$video"
+      - name: Retain review-only MP4, NEVER upload to social media
+        uses: actions/upload-artifact@v4
+        with:
+          name: Klyptiq-${{ matrix.slug }}-editorial-review
+          path: output/Klyptiq-${{ matrix.slug }}-REVIEW.mp4
+          if-no-files-found: error
+          retention-days: 14
