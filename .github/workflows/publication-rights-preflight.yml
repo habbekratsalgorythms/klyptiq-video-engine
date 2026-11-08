@@ -11,7 +11,7 @@ on:
       - 'tests/test_per_post_revenue.py'
       - 'docs/PER_POST_MONETIZATION.md'
   push:
-    branches: [fix/per-post-licensed-media-20261108]
+    branches: [fix/per-post-licensed-media-20261108, feature/rights-preflight-images-20261108]
   workflow_dispatch:
 permissions:
   contents: read
