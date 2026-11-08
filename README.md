@@ -69,7 +69,9 @@ Klyptiq's `--pop` mode now also accepts **local video clips** instead of only ph
 
 ### New footage-first Director Cut — explicitly NOT another photo slideshow
 
-Use `--director` with a per-scene `shots` storyboard. This **different** renderer requires two or more distinct cleared sources per scene, actual moving clips for at least two thirds of all shots, 0.5–2.1 second cuts, short active captions and synthesized original mini-impacts. It removes the persistent large title and dark caption cards. **It does not manufacture actual gameplay, download Rockstar videos, assert commercial reuse rights, or automatically post.** Existing `--pop` remains the stable photo/video renderer. See [Director Cut requirements and example](docs/DIRECTOR_CUT.md). The first production-quality clip cannot be considered approved until actual authorized footage is provided and the finished MP4 is watched and heard.
+Use `--director` with a per-scene `shots` storyboard. Unlike the old photo slideshow, it requires at least two distinct sources per scene, moving video in at least two thirds of the shots, cuts of 0.5–2.1 seconds, scene-synced captions, original synthetic drum/bass music automatically ducked under offline narration, and original short sound accents. It removes the giant slide title and black lower-third boxes. A shot with `layout: "stacked"` can now compose **two separate cleared video streams simultaneously** above and below an "AND/OR" divider, with separate offsets and rights declarations. Short one-second clips slow no more than 1.8× instead of looping visibly.
+
+**Editorial experiment:** The [real GTA VI review workflow](docs/REAL_FOOTAGE_REVIEW.md) temporarily retrieves a SHA-pinned official Rockstar archive, prepares the `Six More Faces` 19-shot V3 review and runs independent visual/audio checks. All original footage stays out of Git and **no social content is published**. `editorial_review_only` clips are permitted **only** when `distribution: "internal_review"`. A successful render does not grant commercial rights or prove creative quality. The old `--pop` and `--motion` modes are still unchanged.
 
 ### Caption timing
 
