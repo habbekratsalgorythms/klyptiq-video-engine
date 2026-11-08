@@ -8,6 +8,7 @@ on:
       - 'director_cut.py'
       - 'render.py'
       - 'scripts/prepare_official_review_clips.py'
+      - 'scripts/evaluate_director_review.py'
   workflow_dispatch:
 permissions:
   contents: read
