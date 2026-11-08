@@ -1,0 +1,45 @@
+name: Inspect official GTA VI long-trailer source metadata (HEAD only)
+on:
+  push:
+    branches: [feature/official-long-video-discovery-20261108]
+    paths: ['.github/workflows/official-trailer-discovery.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Read only Rockstar's official HTML for downloadable long videos
+        run: |
+          python3 - <<'PY'
+          import urllib.request,re,html,json
+          for u in [
+              "https://www.rockstargames.com/VI/media/videos",
+              "https://www.rockstargames.com/VI/media",
+              "https://www.rockstargames.com/VI",
+              "https://www.rockstargames.com/VI/downloads/videos",
+          ]:
+              print("PAGE",u,flush=True)
+              req=urllib.request.Request(u,headers={"User-Agent":"Mozilla/5.0 (compatible; Klyptiq-source-review/1.0)"})
+              try:
+                  with urllib.request.urlopen(req,timeout=28) as rsp:
+                      raw=rsp.read(2_500_000).decode("utf8","replace")
+                      print("STATUS",rsp.status,"BYTES",len(raw),flush=True)
+              except Exception as e:
+                  print("ERROR",type(e).__name__,str(e)[:350],flush=True)
+                  continue
+              for label in ("Launch Trailer","Extended Look","Trailer 2","downloads/videos","video/mp4"):
+                  pos=raw.lower().find(label.lower())
+                  print("MARK",label,pos,repr(raw[max(0,pos-70):pos+140]) if pos>=0 else "",flush=True)
+              candidates=set()
+              versions=[raw,html.unescape(raw),raw.replace(r'\\u0026','&').replace(r'\\/','/')]
+              for source in versions:
+                  for item in re.findall(r'(?:https?:)?//[^"\s<>\\]{15,220}?(?:\.mp4|\.m3u8|\.zip)(?:\?[^"\s<>\\]*)?',source,re.I):
+                      candidates.add(item.split("?")[0])
+                  for item in re.findall(r'/VI/[^"\s<>\\]{6,150}(?:\.mp4|\.m3u8|\.zip)',source,re.I):
+                      candidates.add("https://www.rockstargames.com"+item)
+              for i,c in enumerate(sorted(candidates)[:32]):
+                  print("CANDIDATE",i,c,flush=True)
+          PY
