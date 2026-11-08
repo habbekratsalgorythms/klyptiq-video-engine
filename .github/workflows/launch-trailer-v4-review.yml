@@ -72,6 +72,7 @@ jobs:
           PY
       - name: Render 20-shot video through Klyptiq's own Director engine
         run: |
+          mkdir -p output
           . .venv/bin/activate
           python render.py briefs/review/launch-trailer-v4.json \
             --tts kokoro --model models/kokoro-v1.0.fp16.onnx \
