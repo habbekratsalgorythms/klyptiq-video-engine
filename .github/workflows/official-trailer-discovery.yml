@@ -43,3 +43,16 @@ jobs:
               for i,c in enumerate(sorted(candidates)[:32]):
                   print("CANDIDATE",i,c,flush=True)
           PY
+
+      - name: Verify direct Rockstar trailer downloads by response headers only
+        shell: bash
+        run: |
+          set -uo pipefail
+          for name in GTAVI_Launch_Trailer GTAVI_An_Extended_Look GTAVI_Trailer_2 GTAVI_Trailer_1; do
+            url="https://media-rockstargames-com.akamaized.net/VI/downloads/videos/$name/$name.mp4"
+            echo "OFFICIAL_TRAILER $name"
+            curl -sSLI --retry 1 --max-time 25 --output /dev/null \
+              --write-out 'HEAD_HTTP=%{http_code} TYPE=%{content_type} SIZE=%{size_download}\n' "$url" || true
+            curl -sSI --max-time 12 "$url" | tr -d '\r' | grep -iE '^(content-length|content-type|accept-ranges|last-modified):' | tail -4 || true
+          done
+          echo "No long trailer files downloaded in this inspection"
