@@ -6,6 +6,7 @@ on:
       - feature/energetic-kokoro-voice-20261107
       - feature/pop-shorts-20261108
       - feature/cinematic-motion-overlay-20261107
+      - feature/licensed-video-clips-20261108
   workflow_dispatch:
 permissions:
   contents: read
