@@ -1,0 +1,55 @@
+name: Character voice auditions (no publishing)
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/influencer_voice_auditions.py'
+      - 'tests/test_influencer_voice_auditions.py'
+      - '.github/workflows/influencer-voice-review.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify dry run and safety tests without downloading models
+        run: |
+          python -m compileall -q scripts/influencer_voice_auditions.py tests/test_influencer_voice_auditions.py
+          python -m unittest discover -s tests -p 'test_influencer_voice_auditions.py' -v
+          python scripts/influencer_voice_auditions.py > /dev/null
+
+  create-auditions:
+    if: github.event_name == 'workflow_dispatch'
+    needs: offline-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Prepare local Kokoro with verified model hashes
+        run: |
+          python -m venv .venv
+          bash scripts/setup_kokoro.sh
+      - name: Render four original WAV auditions (no external TTS API)
+        run: |
+          . .venv/bin/activate
+          python scripts/influencer_voice_auditions.py --execute
+      - name: Archive review-only audio and SHA256 manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: Klyptiq-original-character-voice-review
+          path: |
+            output/influencer-voice-review/*.wav
+            output/influencer-voice-review/voice-review-manifest.json
+          if-no-files-found: error
+          retention-days: 14
